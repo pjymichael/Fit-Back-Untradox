@@ -1,0 +1,29 @@
+# Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
+
+client_id = "a13744ee0afada76fd87c62810458dc8"
+name = "Fitback"
+handle = "fitback-4"
+application_url = "https://gently-sonic-os-tones.trycloudflare.com"
+embedded = true
+
+[build]
+automatically_update_urls_on_dev = true
+dev_store_url = "fitback-size.myshopify.com"
+include_config_on_deploy = true
+
+[access_scopes]
+# Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
+scopes = ""
+
+[auth]
+redirect_urls = [
+  "https://gently-sonic-os-tones.trycloudflare.com/auth/callback",
+  "https://gently-sonic-os-tones.trycloudflare.com/auth/shopify/callback",
+  "https://gently-sonic-os-tones.trycloudflare.com/api/auth/callback"
+]
+
+[webhooks]
+api_version = "2024-10"
+
+[pos]
+embedded = false
