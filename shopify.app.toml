@@ -2,8 +2,8 @@
 
 client_id = "a13744ee0afada76fd87c62810458dc8"
 name = "Fitback"
-handle = "fitback-3"
-application_url = "https://country-weird-ampland-resort.trycloudflare.com"
+handle = "fitback-4"
+application_url = "https://shopify.dev/apps/default-app-home"
 embedded = true
 
 [build]
@@ -13,14 +13,10 @@ include_config_on_deploy = true
 
 [access_scopes]
 # Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
-scopes = "read_products"
+scopes = ""
 
 [auth]
-redirect_urls = [
-  "https://country-weird-ampland-resort.trycloudflare.com/auth/callback",
-  "https://country-weird-ampland-resort.trycloudflare.com/auth/shopify/callback",
-  "https://country-weird-ampland-resort.trycloudflare.com/api/auth/callback"
-]
+redirect_urls = [ "https://shopify.dev/apps/default-app-home/api/auth" ]
 
 [webhooks]
 api_version = "2024-10"

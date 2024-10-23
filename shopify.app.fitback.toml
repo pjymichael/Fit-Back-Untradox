@@ -1,9 +1,9 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
-client_id = "a13744ee0afada76fd87c62810458dc8"
+client_id = "6d959e3b05f5a0b80990424ba2b0a14d"
 name = "Fitback"
-handle = "fitback-4"
-application_url = "https://gently-sonic-os-tones.trycloudflare.com"
+handle = "fitback-5"
+application_url = "https://hobbies-forecasts-charming-associations.trycloudflare.com"
 embedded = true
 
 [build]
@@ -13,13 +13,13 @@ include_config_on_deploy = true
 
 [access_scopes]
 # Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
-scopes = ""
+scopes = "read_products"
 
 [auth]
 redirect_urls = [
-  "https://gently-sonic-os-tones.trycloudflare.com/auth/callback",
-  "https://gently-sonic-os-tones.trycloudflare.com/auth/shopify/callback",
-  "https://gently-sonic-os-tones.trycloudflare.com/api/auth/callback"
+  "https://hobbies-forecasts-charming-associations.trycloudflare.com/auth/callback",
+  "https://hobbies-forecasts-charming-associations.trycloudflare.com/auth/shopify/callback",
+  "https://hobbies-forecasts-charming-associations.trycloudflare.com/api/auth/callback"
 ]
 
 [webhooks]
