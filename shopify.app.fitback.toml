@@ -3,7 +3,7 @@
 client_id = "6d959e3b05f5a0b80990424ba2b0a14d"
 name = "Fitback"
 handle = "fitback-5"
-application_url = "https://hobbies-forecasts-charming-associations.trycloudflare.com"
+application_url = "https://organisations-strike-id-unauthorized.trycloudflare.com"
 embedded = true
 
 [build]
@@ -17,9 +17,9 @@ scopes = "read_products"
 
 [auth]
 redirect_urls = [
-  "https://hobbies-forecasts-charming-associations.trycloudflare.com/auth/callback",
-  "https://hobbies-forecasts-charming-associations.trycloudflare.com/auth/shopify/callback",
-  "https://hobbies-forecasts-charming-associations.trycloudflare.com/api/auth/callback"
+  "https://organisations-strike-id-unauthorized.trycloudflare.com/auth/callback",
+  "https://organisations-strike-id-unauthorized.trycloudflare.com/auth/shopify/callback",
+  "https://organisations-strike-id-unauthorized.trycloudflare.com/api/auth/callback"
 ]
 
 [webhooks]
