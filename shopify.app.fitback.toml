@@ -3,7 +3,7 @@
 client_id = "6d959e3b05f5a0b80990424ba2b0a14d"
 name = "Fitback"
 handle = "fitback-5"
-application_url = "https://sole-merry-ip-virtually.trycloudflare.com"
+application_url = "https://deliver-down-tight-island.trycloudflare.com"
 embedded = true
 
 [build]
@@ -13,13 +13,13 @@ include_config_on_deploy = true
 
 [access_scopes]
 # Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
-scopes = "read_products"
+scopes = "read_products,write_products"
 
 [auth]
 redirect_urls = [
-  "https://sole-merry-ip-virtually.trycloudflare.com/auth/callback",
-  "https://sole-merry-ip-virtually.trycloudflare.com/auth/shopify/callback",
-  "https://sole-merry-ip-virtually.trycloudflare.com/api/auth/callback"
+  "https://deliver-down-tight-island.trycloudflare.com/auth/callback",
+  "https://deliver-down-tight-island.trycloudflare.com/auth/shopify/callback",
+  "https://deliver-down-tight-island.trycloudflare.com/api/auth/callback"
 ]
 
 [webhooks]
