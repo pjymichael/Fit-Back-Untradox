@@ -74,7 +74,7 @@ export default function ProductList() {
                 console.log("Navigating to:", `products/${numericId}/sizing`);
                 navigate(`/products/${numericId}/sizing`);
               }}>
-                Add Sizing Information
+                Add Sizing information
               </Button>
             </Card>
           </Layout.Section>

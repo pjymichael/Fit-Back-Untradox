@@ -3,7 +3,7 @@
 client_id = "6d959e3b05f5a0b80990424ba2b0a14d"
 name = "Fitback"
 handle = "fitback-5"
-application_url = "https://investments-translations-authority-interesting.trycloudflare.com"
+application_url = "https://disappointed-trauma-res-ppm.trycloudflare.com"
 embedded = true
 
 [build]
@@ -17,9 +17,9 @@ scopes = "read_products,write_products"
 
 [auth]
 redirect_urls = [
-  "https://investments-translations-authority-interesting.trycloudflare.com/auth/callback",
-  "https://investments-translations-authority-interesting.trycloudflare.com/auth/shopify/callback",
-  "https://investments-translations-authority-interesting.trycloudflare.com/api/auth/callback"
+  "https://disappointed-trauma-res-ppm.trycloudflare.com/auth/callback",
+  "https://disappointed-trauma-res-ppm.trycloudflare.com/auth/shopify/callback",
+  "https://disappointed-trauma-res-ppm.trycloudflare.com/api/auth/callback"
 ]
 
 [webhooks]
