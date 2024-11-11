@@ -1,0 +1,195 @@
+{
+    "clothingItems": [
+      {
+        "id":1,
+        "header": {
+          "brandName": "Benjamin Barker", 
+          "clothesName": "Performance Tech Rib Polo Tee", 
+          "measurementUnit": "cm",
+          "sizingInfo": ["chest", "waist", "shoulders", "sleeve"],
+          "targetAudience": "Men"
+        },
+        "contents": [
+          {
+            "size": "XS/38",
+            "chest": 95,
+            "waist": 94,
+            "shoulders": 43,
+            "sleeve": 62
+          },
+          {
+            "size": "S/39",
+            "chest": 99,
+            "waist": 98,
+            "shoulders": 44,
+            "sleeve": 63
+          },
+          {
+            "size": "M/40",
+            "fit": "Slim",
+            "chest": 104,
+            "waist": 103,
+            "shoulders": 45,
+            "sleeve": 65
+          },
+          {
+            "size": "L/41",
+            "chest": 110,
+            "waist": 109,
+            "shoulders": 46,
+            "sleeve": 66
+          },
+          {
+            "size": "XL/42",
+            "chest": 116,
+            "waist": 115,
+            "shoulders": 47,
+            "sleeve": 67
+          }
+        ]
+      },
+      {
+        "id":2,
+        "header": {
+          "brandName": "Zara",
+          "clothesName": "Floral Summer Dress",
+          "measurementUnit": "cm",
+          "sizingInfo": ["chest", "waist", "hips", "length"],
+          "targetAudience": "Women"
+        },
+        "contents": [
+          {
+            "size": "XS/34",
+            "chest": 82,
+            "waist": 64,
+            "hips": 88,
+            "length": 90
+          },
+          {
+            "size": "S/36",
+            "chest": 86,
+            "waist": 68,
+            "hips": 92,
+            "length": 92
+          },
+          {
+            "size": "M/38",
+            "fit": "Regular",
+            "chest": 90,
+            "waist": 72,
+            "hips": 96,
+            "length": 94
+          },
+          {
+            "size": "L/40",
+            "chest": 94,
+            "waist": 76,
+            "hips": 100,
+            "length": 96
+          },
+          {
+            "size": "XL/42",
+            "chest": 98,
+            "waist": 80,
+            "hips": 104,
+            "length": 98
+          }
+        ]
+      },
+      {
+        "id":3,
+        "header": {
+          "brandName": "H&M",
+          "clothesName": "Basic Hoodie",
+          "measurementUnit": "cm",
+          "sizingInfo": ["chest", "waist", "shoulders", "sleeve", "length"],
+          "targetAudience": "Unisex"
+        },
+        "contents": [
+          {
+            "size": "XS",
+            "chest": 94,
+            "waist": 90,
+            "shoulders": 45,
+            "sleeve": 64,
+            "length": 70
+          },
+          {
+            "size": "S",
+            "chest": 98,
+            "waist": 94,
+            "shoulders": 46,
+            "sleeve": 65,
+            "length": 72
+          },
+          {
+            "size": "M",
+            "fit": "Regular",
+            "chest": 102,
+            "waist": 98,
+            "shoulders": 47,
+            "sleeve": 66,
+            "length": 74
+          },
+          {
+            "size": "L",
+            "chest": 106,
+            "waist": 102,
+            "shoulders": 48,
+            "sleeve": 67,
+            "length": 76
+          },
+          {
+            "size": "XL",
+            "chest": 110,
+            "waist": 106,
+            "shoulders": 49,
+            "sleeve": 68,
+            "length": 78
+          }
+        ]
+      },
+      {
+        "id":4,
+        "header": {
+          "brandName": "Levi's",
+          "clothesName": "Denim Trucker Jacket",
+          "measurementUnit": "cm",
+          "sizingInfo": ["chest", "waist", "shoulders", "sleeve"],
+          "targetAudience": "Men"
+        },
+        "contents": [
+          {
+            "size": "S",
+            "chest": 98,
+            "waist": 94,
+            "shoulders": 44,
+            "sleeve": 65
+          },
+          {
+            "size": "M",
+            "fit": "Regular",
+            "chest": 102,
+            "waist": 98,
+            "shoulders": 45,
+            "sleeve": 66
+          },
+          {
+            "size": "L",
+            "chest": 106,
+            "waist": 102,
+            "shoulders": 46,
+            "sleeve": 67
+          },
+          {
+            "size": "XL",
+            "chest": 110,
+            "waist": 106,
+            "shoulders": 47,
+            "sleeve": 68
+          }
+        ]
+      }
+    ]
+  }
+  
