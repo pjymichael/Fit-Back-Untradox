@@ -56,7 +56,7 @@ model Measurement {
 
 model Size {
   id            Int           @id @default(autoincrement())
-  label         String        // Size label (e.g., "XS/38")
+  label         String        // Size label (e.g., "XS, S, M")
   measurements  Measurement[] // List of measurements for this size
   sizingChartId Int           // Foreign key to associate with SizingChart
   sizingChart   SizingChart   @relation(fields: [sizingChartId], references: [id])
