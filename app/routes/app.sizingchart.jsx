@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "@remix-run/react"; // Import useNavigate
 import {
   Page,
   Card,
@@ -6,6 +7,7 @@ import {
   TextField,
   Button,
   FormLayout,
+  ButtonGroup,
 } from "@shopify/polaris";
 
 // Define unit options
@@ -35,6 +37,7 @@ const measurementLabelOptions = [
 ];
 
 export default function SizingChartForm() {
+  const navigate = useNavigate(); // Initialize navigate for routing
   const [sizes, setSizes] = useState([
     { label: "", unit: "cm", measurements: [{ label: "chest", value: "" }] },
   ]);
@@ -86,9 +89,10 @@ export default function SizingChartForm() {
   return (
     <Page 
       title="Add Sizing Chart"
-      breadcrumbs={[{ content: "Back", onAction: () => navigate(-1) }]} // Add back button here
-
     >
+      <ButtonGroup>
+        <Button onClick={() => navigate(-1)}>Back</Button> {/* Custom back button */}
+      </ButtonGroup>
       <Card sectioned>
         <FormLayout>
           {sizes.map((size, sizeIndex) => (
