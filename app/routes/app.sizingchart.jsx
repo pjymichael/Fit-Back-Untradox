@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate, useSubmit } from "@remix-run/react"; // Import useNavigate and useSubmit
+import { useNavigate, useSubmit, useActionData  } from "@remix-run/react"; // Import useNavigate and useSubmit
 import {
   Page,
   Card,
@@ -11,6 +11,42 @@ import {
   Banner,
 } from "@shopify/polaris";
 
+// app/routes/app.sizingchart.jsx
+import { json } from "@remix-run/node";
+import db from "../db.server"; // Your database model
+
+export async function action({ request }) {
+  const formData = await request.formData();
+  const sizes = JSON.parse(formData.get("sizes"));
+  console.log("Form submission in progress...");
+
+  try {
+    // Create the sizing chart and nested sizes/measurements in the database
+    const newSizingChart = await db.SizingChart.create({
+      data: {
+        sizes: {
+          create: sizes.map((size) => ({
+            label: size.label,
+            measurements: {
+              create: size.measurements.map((measurement) => ({
+                label: measurement.label,
+                value: parseFloat(measurement.value),
+                unit: size.unit,
+              })),
+            },
+          })),
+        },
+      },
+    });
+
+    console.log("Sizing chart created successfully:", newSizingChart);
+    return json({ success: true, id: newSizingChart.id });
+
+  } catch (error) {
+    console.error("Error creating sizing chart:", error);
+    return json({ success: false, error: error.message }, { status: 500 });
+  }
+}
 // Define unit options
 const unitOptions = [
   { label: "Select unit", value: "", disabled: true },
@@ -43,6 +79,7 @@ const measurementLabelOptions = [
 export default function SizingChartForm() {
   const navigate = useNavigate();
   const submit = useSubmit();
+  const actionData = useActionData(); // Get the action response
   const [sizes, setSizes] = useState([
     { label: "", unit: "", measurements: [{ label: "", value: "" }] },
   ]);
@@ -85,8 +122,8 @@ export default function SizingChartForm() {
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    console.log(sizes)
     // Validation to ensure all fields are filled
+    console.log(sizes)
     for (const size of sizes) {
       if (!size.label || !size.unit) {
         setError("Please fill out all size labels and units.");
@@ -103,7 +140,9 @@ export default function SizingChartForm() {
     setError(""); // Clear any existing errors
     const formData = new FormData();
     formData.append("sizes", JSON.stringify(sizes));
-    submit(formData, { method: "post", action: "/app/sizingchart/new" });
+    
+    // No need for "/new" in the action, directly submit to the same route
+    submit(formData, { method: "post" });
   };
 
   return (
@@ -111,6 +150,18 @@ export default function SizingChartForm() {
       <ButtonGroup>
         <Button onClick={() => navigate(-1)}>Back</Button>
       </ButtonGroup>
+
+       {/* Success or Error Banner */}
+       {actionData?.success && (
+        <Banner status="success" title="Success">
+          <p>Sizing chart created successfully! ID: {actionData.id}</p>
+        </Banner>
+      )}
+      {actionData?.error && (
+        <Banner status="critical" title="Error">
+          <p>{actionData.error}</p>
+        </Banner>
+      )}
 
       {/* Error Banner */}
       {error && (

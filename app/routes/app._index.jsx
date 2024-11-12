@@ -52,11 +52,17 @@ export async function loader({ request }) {
   const productData = await productResponse.json();
   const products = productData.data.products.edges.map(edge => edge.node);
 
+
   // Fetch sizing chart data from the Prisma database
   const sizingCharts = await db.sizingChart.findMany({
-    include: { sizes: true } // Include associated sizes if you have a relation
+    include: {
+      sizes: {
+        include: {
+          measurements: true, // Fetch nested measurements within each size
+        },
+      },
+    },
   });
-
   return json({ products, sizingCharts });
 }
 
@@ -103,25 +109,23 @@ export default function HomePage() {
             {/* Sizing Charts Tab */}
             {selectedTab === 1 && (
               <Layout.Section>
-                <Button
-                  primary
-                  onClick={() => navigate("/app/sizingchart")}
-                  
-                >
+                <Button primary onClick={() => navigate("/app/sizingchart")}>
                   Add Sizing Chart
                 </Button>
                 {sizingCharts.length > 0 ? (
                   sizingCharts.map((chart) => (
-                    <Card key={chart.id} title={`Sizing Chart for Product ${chart.productId}`} sectioned>
+                    <Card key={chart.id} title={`Sizing Chart ID: ${chart.id}`} sectioned>
                       <Text as="p">Created At: {new Date(chart.createdAt).toLocaleDateString()}</Text>
                       <Text as="p">Updated At: {new Date(chart.updatedAt).toLocaleDateString()}</Text>
+                      {/* Display each size within the sizing chart */}
                       {chart.sizes.map((size) => (
                         <Card key={size.id} title={`Size: ${size.label}`} sectioned>
-                          <Text>Chest: {size.chest || "N/A"}</Text>
-                          <Text>Waist: {size.waist || "N/A"}</Text>
-                          <Text>Shoulders: {size.shoulders || "N/A"}</Text>
-                          <Text>Sleeve: {size.sleeve || "N/A"}</Text>
-                          {/* Add more size details as needed */}
+                          {/* Render each measurement within the size */}
+                          {size.measurements.map((measurement, index) => (
+                            <Text key={index}>
+                              {measurement.label}: {measurement.value} {measurement.unit || ""}
+                            </Text>
+                          ))}
                         </Card>
                       ))}
                     </Card>

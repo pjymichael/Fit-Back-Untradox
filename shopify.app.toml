@@ -3,7 +3,7 @@
 client_id = "6d959e3b05f5a0b80990424ba2b0a14d"
 name = "Fitback"
 handle = "fitback-5"
-application_url = "https://cameron-wb-invasion-cleared.trycloudflare.com"
+application_url = "https://refers-protected-association-abstracts.trycloudflare.com"
 embedded = true
 
 [build]
@@ -17,9 +17,9 @@ scopes = "read_products,write_products"
 
 [auth]
 redirect_urls = [
-  "https://cameron-wb-invasion-cleared.trycloudflare.com/auth/callback",
-  "https://cameron-wb-invasion-cleared.trycloudflare.com/auth/shopify/callback",
-  "https://cameron-wb-invasion-cleared.trycloudflare.com/api/auth/callback"
+  "https://refers-protected-association-abstracts.trycloudflare.com/auth/callback",
+  "https://refers-protected-association-abstracts.trycloudflare.com/auth/shopify/callback",
+  "https://refers-protected-association-abstracts.trycloudflare.com/api/auth/callback"
 ]
 
 [webhooks]
