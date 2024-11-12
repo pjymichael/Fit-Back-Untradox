@@ -105,7 +105,7 @@ export default function HomePage() {
               <Layout.Section>
                 <Button
                   primary
-                  onClick={() => navigate("/add-sizing-chart")}
+                  onClick={() => navigate("/app/sizingchart")}
                   
                 >
                   Add Sizing Chart
