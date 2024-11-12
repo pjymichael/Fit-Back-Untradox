@@ -47,6 +47,7 @@ model QRCode {
 
 model SizingChart {
   id        Int      @id @default(autoincrement())
+  productId String   // Reference to the associated Shopify product ID
   sizes     Size[]   // Relation to store different sizes and measurements
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
