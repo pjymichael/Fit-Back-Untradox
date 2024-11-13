@@ -1,37 +1,35 @@
 import React, { useState } from "react";
-import { useNavigate, useSubmit, useActionData  } from "@remix-run/react"; // Import useNavigate and useSubmit
+import { useNavigate, useSubmit, useActionData } from "@remix-run/react";
 import {
   Page,
   Card,
-  Select,
   TextField,
   Button,
-  FormLayout,
-  ButtonGroup,
   Banner,
+  Select,
+  ButtonGroup,
 } from "@shopify/polaris";
-
-// app/routes/app.sizingchart.jsx
 import { json } from "@remix-run/node";
-import db from "../db.server"; // Your database model
-
+import db from "../db.server";
 export async function action({ request }) {
   const formData = await request.formData();
   const sizes = JSON.parse(formData.get("sizes"));
-  console.log("Form submission in progress...");
-
+  const unit = formData.get("unit"); // Get the unit for the entire sizing chart
+  console.log("HIHIHI")
+  console.log(sizes, unit)
   try {
-    // Create the sizing chart and nested sizes/measurements in the database
+
     const newSizingChart = await db.SizingChart.create({
       data: {
+        unit: unit, // Now that `unit` is defined in the schema, this should work
         sizes: {
           create: sizes.map((size) => ({
             label: size.label,
             measurements: {
-              create: size.measurements.map((measurement) => ({
-                label: measurement.label,
-                value: parseFloat(measurement.value),
-                unit: size.unit,
+              create: Object.entries(size.measurements).map(([label, value]) => ({
+                label: label,
+                value: parseFloat(value),
+                unit: unit,
               })),
             },
           })),
@@ -47,101 +45,74 @@ export async function action({ request }) {
     return json({ success: false, error: error.message }, { status: 500 });
   }
 }
-// Define unit options
-const unitOptions = [
-  { label: "Select unit", value: "", disabled: true },
-  { label: "cm", value: "cm" },
-  { label: "inches", value: "in" },
-];
-
-// Define size label options
-const sizeLabelOptions = [
-  { label: "Select size", value: "", disabled: true },
-  { label: "XS", value: "XS" },
-  { label: "S", value: "S" },
-  { label: "M", value: "M" },
-  { label: "L", value: "L" },
-  { label: "XL", value: "XL" },
-];
-
-// Define measurement label options
-const measurementLabelOptions = [
-  { label: "Select measurement", value: "", disabled: true },
-  { label: "Chest", value: "chest" },
-  { label: "Waist", value: "waist" },
-  { label: "Shoulders", value: "shoulders" },
-  { label: "Sleeve", value: "sleeve" },
-  { label: "Hip", value: "hip" },
-  { label: "Inseam", value: "inseam" },
-  { label: "Length", value: "length" },
-];
 
 export default function SizingChartForm() {
   const navigate = useNavigate();
   const submit = useSubmit();
-  const actionData = useActionData(); // Get the action response
+  const actionData = useActionData();
+
+  const [unit, setUnit] = useState("cm");
   const [sizes, setSizes] = useState([
-    { label: "", unit: "", measurements: [{ label: "", value: "" }] },
+    { label: "", measurements: { Chest: "", Waist: "" } },
   ]);
   const [error, setError] = useState("");
 
-  const addSize = () => {
+  const unitOptions = [
+    { label: "cm", value: "cm" },
+    { label: "inches", value: "in" },
+  ];
+
+  const addSizeRow = () => {
     setSizes([
       ...sizes,
-      { label: "", unit: "", measurements: [{ label: "", value: "" }] },
+      { label: "", measurements: Object.keys(sizes[0].measurements).reduce((acc, key) => ({ ...acc, [key]: "" }), {}) },
     ]);
   };
 
-  const removeSize = (index) => {
-    setSizes(sizes.filter((_, i) => i !== index));
-  };
+  const addMeasurementColumn = () => {
+    const newMeasurement = prompt("Enter the new measurement name:");
+    if (!newMeasurement) return;
 
-  const addMeasurement = (sizeIndex) => {
-    const updatedSizes = [...sizes];
-    updatedSizes[sizeIndex].measurements.push({ label: "", value: "" });
-    setSizes(updatedSizes);
-  };
-
-  const removeMeasurement = (sizeIndex, measurementIndex) => {
-    const updatedSizes = [...sizes];
-    updatedSizes[sizeIndex].measurements = updatedSizes[sizeIndex].measurements.filter(
-      (_, i) => i !== measurementIndex
+    setSizes((prevSizes) =>
+      prevSizes.map((size) => ({
+        ...size,
+        measurements: { ...size.measurements, [newMeasurement]: "" },
+      }))
     );
+  };
+
+  const handleInputChange = (sizeIndex, field, value) => {
+    const updatedSizes = [...sizes];
+    updatedSizes[sizeIndex].measurements[field] = value;
     setSizes(updatedSizes);
   };
 
-  const handleInputChange = (sizeIndex, field, value, measurementIndex = null) => {
+  const handleLabelChange = (sizeIndex, value) => {
     const updatedSizes = [...sizes];
-    if (measurementIndex === null) {
-      updatedSizes[sizeIndex][field] = value;
-    } else {
-      updatedSizes[sizeIndex].measurements[measurementIndex][field] = value;
-    }
+    updatedSizes[sizeIndex].label = value;
     setSizes(updatedSizes);
   };
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    // Validation to ensure all fields are filled
-    console.log(sizes)
+    
     for (const size of sizes) {
-      if (!size.label || !size.unit) {
-        setError("Please fill out all size labels and units.");
+      if (!size.label) {
+        setError("Please fill out all size labels.");
         return;
       }
-      for (const measurement of size.measurements) {
-        if (!measurement.label || !measurement.value) {
-          setError("Please fill out all measurement labels and values.");
+      for (const key in size.measurements) {
+        if (size.measurements[key] === "") {
+          setError("Please fill out all measurement values.");
           return;
         }
       }
     }
 
-    setError(""); // Clear any existing errors
+    setError("");
     const formData = new FormData();
     formData.append("sizes", JSON.stringify(sizes));
-    
-    // No need for "/new" in the action, directly submit to the same route
+    formData.append("unit", unit);
     submit(formData, { method: "post" });
   };
 
@@ -151,8 +122,7 @@ export default function SizingChartForm() {
         <Button onClick={() => navigate(-1)}>Back</Button>
       </ButtonGroup>
 
-       {/* Success or Error Banner */}
-       {actionData?.success && (
+      {actionData?.success && (
         <Banner status="success" title="Success">
           <p>Sizing chart created successfully! ID: {actionData.id}</p>
         </Banner>
@@ -162,8 +132,6 @@ export default function SizingChartForm() {
           <p>{actionData.error}</p>
         </Banner>
       )}
-
-      {/* Error Banner */}
       {error && (
         <Banner status="critical" title="Error">
           <p>{error}</p>
@@ -172,59 +140,57 @@ export default function SizingChartForm() {
 
       <form onSubmit={handleSubmit}>
         <Card sectioned>
-          <FormLayout>
-            {sizes.map((size, sizeIndex) => (
-              <Card key={sizeIndex} sectioned title={`Size ${sizeIndex + 1}`}>
-                <Select
-                  label="Size Label"
-                  options={sizeLabelOptions}
-                  value={size.label}
-                  onChange={(value) => handleInputChange(sizeIndex, "label", value)}
-                />
-                <Select
-                  label="Unit"
-                  options={unitOptions}
-                  value={size.unit}
-                  onChange={(value) => handleInputChange(sizeIndex, "unit", value)}
-                />
-                {size.measurements.map((measurement, measurementIndex) => (
-                  <FormLayout.Group key={measurementIndex}>
-                    <Select
-                      label="Measurement Label"
-                      options={measurementLabelOptions}
-                      value={measurement.label}
-                      onChange={(value) =>
-                        handleInputChange(sizeIndex, "label", value, measurementIndex)
-                      }
-                    />
+          <Select
+            label="Unit"
+            options={unitOptions}
+            value={unit}
+            onChange={(value) => setUnit(value)}
+          />
+          <table style={{ width: "100%", borderCollapse: "collapse", marginTop: "1em" }}>
+            <thead>
+              <tr>
+                <th style={{ border: "1px solid #ccc", padding: "8px" }}>Size Label</th>
+                {Object.keys(sizes[0].measurements).map((measurement) => (
+                  <th key={measurement} style={{ border: "1px solid #ccc", padding: "8px" }}>
+                    {measurement}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {sizes.map((size, sizeIndex) => (
+                <tr key={sizeIndex}>
+                  <td style={{ border: "1px solid #ccc", padding: "8px" }}>
                     <TextField
-                      label="Value"
-                      type="number"
-                      value={measurement.value}
-                      onChange={(value) =>
-                        handleInputChange(sizeIndex, "value", value, measurementIndex)
-                      }
+                      label="Size Label"
+                      value={size.label}
+                      onChange={(value) => handleLabelChange(sizeIndex, value)}
                       autoComplete="off"
                     />
-                    <Button
-                      onClick={() => removeMeasurement(sizeIndex, measurementIndex)}
-                      destructive
-                    >
-                      Remove Measurement
-                    </Button>
-                  </FormLayout.Group>
-                ))}
-                <Button onClick={() => addMeasurement(sizeIndex)}>Add Measurement</Button>
-                <Button onClick={() => removeSize(sizeIndex)} destructive>
-                  Remove Size
-                </Button>
-              </Card>
-            ))}
-            <Button onClick={addSize}>Add Another Size</Button>
+                  </td>
+                  {Object.keys(size.measurements).map((measurement) => (
+                    <td key={measurement} style={{ border: "1px solid #ccc", padding: "8px" }}>
+                      <TextField
+                        label={measurement}
+                        value={size.measurements[measurement]}
+                        onChange={(value) => handleInputChange(sizeIndex, measurement, value)}
+                        autoComplete="off"
+                      />
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <div style={{ marginTop: "1em" }}>
+            <Button onClick={addSizeRow}>Add Size Row</Button>
+            <Button onClick={addMeasurementColumn}>Add Measurement Column</Button>
+          </div>
+          <div style={{ marginTop: "1em" }}>
             <Button primary submit>
               Save Sizing Chart
             </Button>
-          </FormLayout>
+          </div>
         </Card>
       </form>
     </Page>
