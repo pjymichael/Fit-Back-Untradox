@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { useNavigate, useSubmit, useActionData } from "@remix-run/react";
 import {
   Page,
@@ -8,6 +8,8 @@ import {
   Banner,
   Select,
   ButtonGroup,
+  DropZone,
+  Thumbnail,
 } from "@shopify/polaris";
 import { json } from "@remix-run/node";
 import db from "../db.server";
@@ -15,8 +17,7 @@ export async function action({ request }) {
   const formData = await request.formData();
   const sizes = JSON.parse(formData.get("sizes"));
   const unit = formData.get("unit"); // Get the unit for the entire sizing chart
-  console.log("HIHIHI")
-  console.log(sizes, unit)
+
   try {
 
     const newSizingChart = await db.SizingChart.create({
@@ -51,12 +52,17 @@ export default function SizingChartForm() {
   const submit = useSubmit();
   const actionData = useActionData();
 
+  const [files, setFiles] = useState([]); // State for DropZone files
+
   const [unit, setUnit] = useState("cm");
   const [sizes, setSizes] = useState([
     { label: "", measurements: { Chest: "", Waist: "" } },
   ]);
   const [error, setError] = useState("");
-
+  const [getResponse, setGetResponse] = useState(null);
+  // New state to store the response from the POST request
+  const [postResponse, setPostResponse] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
   const unitOptions = [
     { label: "cm", value: "cm" },
     { label: "inches", value: "in" },
@@ -168,12 +174,70 @@ export default function SizingChartForm() {
     submit(formData, { method: "post" });
   };
 
+  const handleDropZoneDrop = useCallback(
+    (_dropFiles, acceptedFiles, _rejectedFiles) => {
+      setFiles((prevFiles) => [...prevFiles, ...acceptedFiles]);
+    },
+    []
+  );
+
+  const handlePostRequest = async () => {
+    if (files.length === 0) {
+      setError("Please select at least one image to upload.");
+      return;
+    }
+
+    setIsUploading(true);
+    setError("");
+
+    const formData = new FormData();
+    files.forEach((file) => {
+      formData.append("images", file);
+    });
+
+    try {
+      const response = await fetch("http://localhost:1000/api/upload", {
+        method: "POST",
+        body: formData,
+        // If your server requires credentials or has CORS settings, include them here
+        // credentials: "include",
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      setPostResponse(data);
+      console.log("POST request successful:", data);
+    } catch (error) {
+      console.error("Error making POST request:", error);
+      setError(`Error: ${error.message}`);
+      setPostResponse(null);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+
   return (
     <Page title="Add Sizing Chart">
       <ButtonGroup>
         <Button onClick={() => navigate(-1)}>Back</Button>
       </ButtonGroup>
-
+      {/* Display the response from the POST request */}
+      {postResponse && (
+        <Banner status="success" title="POST Request Response">
+          <pre style={{ maxHeight: "200px", overflow: "auto" }}>
+            {JSON.stringify(postResponse, null, 2)}
+          </pre>
+        </Banner>
+      )}
+      {error && (
+        <Banner status="critical" title="Error">
+          <p>{error}</p>
+        </Banner>
+      )}
       {actionData?.success && (
         <Banner status="success" title="Success">
           <p>Sizing chart created successfully! ID: {actionData.id}</p>
@@ -275,6 +339,49 @@ export default function SizingChartForm() {
           </div>
         </Card>
       </form>
+      <Card title="Upload Images for Textract" sectioned>
+        <DropZone
+          onDrop={handleDropZoneDrop}
+          allowMultiple
+          accept="image/*" // Accept only image files
+        >
+          <DropZone.FileUpload />
+          {files.length > 0 && (
+            <div style={{ marginTop: "10px" }}>
+              {files.map((file, index) => (
+                <p key={index}>{file.name}</p>
+              ))}
+            </div>
+          )}
+        </DropZone>
+        {/* Display uploaded images */}
+        {files.length > 0 && (
+          <div style={{ display: "flex", flexWrap: "wrap", marginTop: "20px", gap: "10px" }}>
+            {files.map((file, index) => (
+              <div key={index} style={{ textAlign: "center", width: "150px" }}>
+                <Thumbnail
+                  size="large"
+                  alt={file.name}
+                  source={URL.createObjectURL(file)} // Temporary URL for preview
+                />
+                <p style={{ marginTop: "8px", wordWrap: "break-word" }}>{file.name}</p>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Button to trigger the POST request */}
+        <div style={{ marginTop: "1em" }}>
+          <Button
+            onClick={handlePostRequest}
+            primary
+            disabled={isUploading || files.length === 0}
+            loading={isUploading}
+          >
+            {isUploading ? "Uploading..." : "Upload and Process Images"}
+          </Button>
+        </div>
+        </Card>
     </Page>
   );
 }

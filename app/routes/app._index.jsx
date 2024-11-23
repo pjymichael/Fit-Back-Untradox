@@ -1,6 +1,7 @@
 import { json } from "@remix-run/node"; // For server-side data handling in the loader
 import { useLoaderData, useNavigate } from "@remix-run/react"; // Import useLoaderData to access loader data in the component
 import { useState } from "react";
+
 import {
   Page,
   Layout,
@@ -71,7 +72,7 @@ export default function HomePage() {
   const { products, sizingCharts } = useLoaderData(); // Access data from loader
   const navigate = useNavigate();
   const [selectedTab, setSelectedTab] = useState(0);
-
+  
   const handleTabChange = (selectedTabIndex) => setSelectedTab(selectedTabIndex);
 
   const tabs = [
