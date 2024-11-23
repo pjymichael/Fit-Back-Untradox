@@ -108,35 +108,48 @@ export default function HomePage() {
             )}
             {/* Sizing Charts Tab */}
             {selectedTab === 1 && (
-              <Layout.Section>
-                <Button primary onClick={() => navigate("/app/sizingchart")}>
-                  Add Sizing Chart
-                </Button>
-                {sizingCharts.length > 0 ? (
-                  sizingCharts.map((chart) => (
-                    <Card key={chart.id} title={`Sizing Chart ID: ${chart.id}`} sectioned>
-                      <Text as="p">Created At: {new Date(chart.createdAt).toLocaleDateString()}</Text>
-                      <Text as="p">Updated At: {new Date(chart.updatedAt).toLocaleDateString()}</Text>
-                      {/* Display each size within the sizing chart */}
-                      {chart.sizes.map((size) => (
-                        <Card key={size.id} title={`Size: ${size.label}`} sectioned>
-                          {/* Render each measurement within the size */}
-                          {size.measurements.map((measurement, index) => (
-                            <Text key={index}>
-                              {measurement.label}: {measurement.value} {measurement.unit || ""}
-                            </Text>
+            <Layout.Section>
+              <Button primary onClick={() => navigate("/app/sizingchart")}>
+                Add Sizing Chart
+              </Button>
+              {sizingCharts.length > 0 ? (
+                sizingCharts.map((chart) => (
+                  <Card key={chart.id} title={`Sizing Chart ID: ${chart.id}`} sectioned>
+                    <Text as="p">Created At: {new Date(chart.createdAt).toLocaleDateString()}</Text>
+                    <Text as="p">Updated At: {new Date(chart.updatedAt).toLocaleDateString()}</Text>
+                    <table style={{ width: "100%", borderCollapse: "collapse", marginTop: "1em" }}>
+                      <thead>
+                        <tr>
+                          <th style={{ border: "1px solid #ccc", padding: "8px" }}>Size Label</th>
+                          {chart.sizes[0]?.measurements.map((measurement, index) => (
+                            <th key={index} style={{ border: "1px solid #ccc", padding: "8px" }}>
+                              {measurement.label}
+                            </th>
                           ))}
-                        </Card>
-                      ))}
-                    </Card>
-                  ))
-                ) : (
-                  <Card title="Sizing Charts" sectioned>
-                    <Text as="p">No sizing charts available. You can add new sizing charts here.</Text>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {chart.sizes.map((size) => (
+                          <tr key={size.id}>
+                            <td style={{ border: "1px solid #ccc", padding: "8px" }}>{size.label}</td>
+                            {size.measurements.map((measurement, index) => (
+                              <td key={index} style={{ border: "1px solid #ccc", padding: "8px" }}>
+                                {measurement.value} {measurement.unit || ""}
+                              </td>
+                            ))}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </Card>
-                )}
-              </Layout.Section>
-            )}
+                ))
+              ) : (
+                <Card title="Sizing Charts" sectioned>
+                  <Text as="p">No sizing charts available. You can add new sizing charts here.</Text>
+                </Card>
+              )}
+            </Layout.Section>
+          )}
           </Layout>
         </Layout.Section>
       </Tabs>

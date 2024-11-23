@@ -29,7 +29,6 @@ export async function action({ request }) {
               create: Object.entries(size.measurements).map(([label, value]) => ({
                 label: label,
                 value: parseFloat(value),
-                unit: unit,
               })),
             },
           })),
@@ -45,6 +44,7 @@ export async function action({ request }) {
     return json({ success: false, error: error.message }, { status: 500 });
   }
 }
+
 
 export default function SizingChartForm() {
   const navigate = useNavigate();
@@ -62,17 +62,28 @@ export default function SizingChartForm() {
     { label: "inches", value: "in" },
   ];
 
+  // Editable measurement labels
+  const [measurementLabels, setMeasurementLabels] = useState([
+    "Chest",
+    "Waist",
+  ]);
+
+  // Add a new size row
   const addSizeRow = () => {
-    setSizes([
-      ...sizes,
-      { label: "", measurements: Object.keys(sizes[0].measurements).reduce((acc, key) => ({ ...acc, [key]: "" }), {}) },
-    ]);
+    const newMeasurements = {};
+    measurementLabels.forEach((label) => {
+      newMeasurements[label] = "";
+    });
+
+    setSizes([...sizes, { label: "", measurements: newMeasurements }]);
   };
 
+  // Add a new measurement column
   const addMeasurementColumn = () => {
     const newMeasurement = prompt("Enter the new measurement name:");
     if (!newMeasurement) return;
 
+    setMeasurementLabels([...measurementLabels, newMeasurement]);
     setSizes((prevSizes) =>
       prevSizes.map((size) => ({
         ...size,
@@ -81,6 +92,46 @@ export default function SizingChartForm() {
     );
   };
 
+  // Handle editable label changes
+  const handleMeasurementLabelChange = (index, value) => {
+    const updatedLabels = [...measurementLabels];
+    updatedLabels[index] = value;
+
+    const updatedSizes = sizes.map((size) => {
+      const updatedMeasurements = {};
+      updatedLabels.forEach((label, i) => {
+        updatedMeasurements[label] =
+          size.measurements[measurementLabels[i]] || "";
+      });
+      return { ...size, measurements: updatedMeasurements };
+    });
+
+    setMeasurementLabels(updatedLabels);
+    setSizes(updatedSizes);
+  };
+
+  // Delete a size row
+  const deleteSizeRow = (sizeIndex) => {
+    const updatedSizes = sizes.filter((_, index) => index !== sizeIndex);
+    setSizes(updatedSizes);
+  };
+
+  // Delete a measurement column
+  const deleteMeasurementColumn = (measurementKey) => {
+    const updatedLabels = measurementLabels.filter(
+      (label) => label !== measurementKey
+    );
+    setMeasurementLabels(updatedLabels);
+
+    const updatedSizes = sizes.map((size) => {
+      const updatedMeasurements = { ...size.measurements };
+      delete updatedMeasurements[measurementKey];
+      return { ...size, measurements: updatedMeasurements };
+    });
+    setSizes(updatedSizes);
+  };
+
+  // Handle input changes for size labels or measurements
   const handleInputChange = (sizeIndex, field, value) => {
     const updatedSizes = [...sizes];
     updatedSizes[sizeIndex].measurements[field] = value;
@@ -93,9 +144,10 @@ export default function SizingChartForm() {
     setSizes(updatedSizes);
   };
 
+  // Handle form submission
   const handleSubmit = (event) => {
     event.preventDefault();
-    
+
     for (const size of sizes) {
       if (!size.label) {
         setError("Please fill out all size labels.");
@@ -103,7 +155,7 @@ export default function SizingChartForm() {
       }
       for (const key in size.measurements) {
         if (size.measurements[key] === "") {
-          setError("Please fill out all measurement values.");
+          setError(`Please fill out all values for measurement "${key}".`);
           return;
         }
       }
@@ -147,40 +199,70 @@ export default function SizingChartForm() {
             onChange={(value) => setUnit(value)}
           />
           <table style={{ width: "100%", borderCollapse: "collapse", marginTop: "1em" }}>
-            <thead>
-              <tr>
-                <th style={{ border: "1px solid #ccc", padding: "8px" }}>Size Label</th>
-                {Object.keys(sizes[0].measurements).map((measurement) => (
-                  <th key={measurement} style={{ border: "1px solid #ccc", padding: "8px" }}>
-                    {measurement}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {sizes.map((size, sizeIndex) => (
-                <tr key={sizeIndex}>
-                  <td style={{ border: "1px solid #ccc", padding: "8px" }}>
+          <thead>
+            <tr>
+              <th style={{ border: "1px solid #ccc", padding: "8px" }}>Size Label</th>
+              {measurementLabels.map((measurement, index) => (
+                <th key={measurement} style={{ border: "1px solid #ccc", padding: "8px" }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                    <TextField
+                      value={measurement}
+                      onChange={(value) => handleMeasurementLabelChange(index, value)}
+                      autoComplete="off"
+                      style={{ flex: 1, marginRight: "8px" }}
+                    />
+                    <Button
+                      plain
+                      destructive
+                      onClick={() => deleteMeasurementColumn(measurement)}
+                    >
+                      X
+                    </Button>
+                  </div>
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {sizes.map((size, sizeIndex) => (
+              <tr key={sizeIndex}>
+                <td style={{ border: "1px solid #ccc", padding: "8px", position: "relative" }}>
+                  <div style={{ position: "relative", display: "flex", alignItems: "end", justifyContent:"space-between" }}>
+                    <Button
+                      plain
+                      destructive
+                      onClick={() => deleteSizeRow(sizeIndex)}
+                      style={{
+                        position: "absolute",
+                        bottom:"0"
+
+                      }}
+                    >
+                      X
+                    </Button>
                     <TextField
                       label="Size Label"
                       value={size.label}
                       onChange={(value) => handleLabelChange(sizeIndex, value)}
                       autoComplete="off"
+                      style={{ width: "100%" }}
+                    />
+
+                  </div>
+                </td>
+                {Object.keys(size.measurements).map((measurement) => (
+                  <td key={measurement} style={{ border: "1px solid #ccc", padding: "8px" }}>
+                    <TextField
+                      label={measurement}
+                      value={size.measurements[measurement]}
+                      onChange={(value) => handleInputChange(sizeIndex, measurement, value)}
+                      autoComplete="off"
                     />
                   </td>
-                  {Object.keys(size.measurements).map((measurement) => (
-                    <td key={measurement} style={{ border: "1px solid #ccc", padding: "8px" }}>
-                      <TextField
-                        label={measurement}
-                        value={size.measurements[measurement]}
-                        onChange={(value) => handleInputChange(sizeIndex, measurement, value)}
-                        autoComplete="off"
-                      />
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
+                ))}
+              </tr>
+            ))}
+          </tbody>
           </table>
           <div style={{ marginTop: "1em" }}>
             <Button onClick={addSizeRow}>Add Size Row</Button>

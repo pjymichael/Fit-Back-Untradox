@@ -49,14 +49,13 @@ model Measurement {
   id       Int    @id @default(autoincrement())
   label    String // Measurement name (e.g., "chest", "waist")
   value    Float? // Measurement value
-  unit     String // Unit (e.g., "cm", "inches")
   sizeId   Int
   size     Size   @relation(fields: [sizeId], references: [id])
 }
 
 model Size {
   id            Int           @id @default(autoincrement())
-  label         String        // Size label (e.g., "XS, S, M")
+  label           String      //size label (XS,S etc...)
   measurements  Measurement[] // List of measurements for this size
   sizingChartId Int           // Foreign key to associate with SizingChart
   sizingChart   SizingChart   @relation(fields: [sizingChartId], references: [id])
@@ -64,6 +63,7 @@ model Size {
 
 model SizingChart {
   id        Int      @id @default(autoincrement())
+  unit     String // Unit (e.g., "cm", "inches")
   sizes     Size[]   // Relation to store different sizes and measurements
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
