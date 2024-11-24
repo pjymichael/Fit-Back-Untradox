@@ -3,7 +3,7 @@
 client_id = "6d959e3b05f5a0b80990424ba2b0a14d"
 name = "Fitback"
 handle = "fitback-5"
-application_url = "https://scale-synthetic-montreal-are.trycloudflare.com"
+application_url = "https://lotus-cole-institutional-fancy.trycloudflare.com"
 embedded = true
 
 [build]
@@ -17,9 +17,9 @@ scopes = "read_products,write_products"
 
 [auth]
 redirect_urls = [
-  "https://scale-synthetic-montreal-are.trycloudflare.com/auth/callback",
-  "https://scale-synthetic-montreal-are.trycloudflare.com/auth/shopify/callback",
-  "https://scale-synthetic-montreal-are.trycloudflare.com/api/auth/callback"
+  "https://lotus-cole-institutional-fancy.trycloudflare.com/auth/callback",
+  "https://lotus-cole-institutional-fancy.trycloudflare.com/auth/shopify/callback",
+  "https://lotus-cole-institutional-fancy.trycloudflare.com/api/auth/callback"
 ]
 
 [webhooks]

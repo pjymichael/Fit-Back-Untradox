@@ -17,8 +17,9 @@ import db from "../db.server"; // Import your Prisma database instance
 // Loader function that fetches products and sizing charts
 export async function loader({ request }) {
   const { admin } = await authenticate.admin(request);
-
-  // GraphQL query to fetch the first 50 products from Shopify
+  
+  // GraphQL query to fetch products and metafields
+// GraphQL query to fetch products and metafields
   const productResponse = await admin.graphql(`
     query getAllProducts {
       products(first: 50) {
@@ -43,17 +44,27 @@ export async function loader({ request }) {
                 }
               }
             }
+            metafield(namespace: "custom", key: "sizing_chart_id") {
+              namespace
+              key
+              value
+            }
           }
         }
       }
     }
   `);
 
+
   // Parse the JSON response and extract product data
   const productData = await productResponse.json();
-  const products = productData.data.products.edges.map(edge => edge.node);
-
-
+  const products = productData.data.products.edges.map((edge) => {
+    const metafieldNode = edge.node.metafield; // Extract metafield node directly
+    return {
+      ...edge.node,
+      metafield: metafieldNode ? { key: metafieldNode.key, value: metafieldNode.value } : null,
+    };
+  });
   // Fetch sizing chart data from the Prisma database
   const sizingCharts = await db.sizingChart.findMany({
     include: {
@@ -97,10 +108,16 @@ export default function HomePage() {
                     />
                     <Text as="p">{product.description || "No description available."}</Text>
                     <Text as="p">Price: ${product.variants.edges[0]?.node.price || "N/A"}</Text>
-                    <Button onClick={() => {
-                      const numericId = product.id.split("/").pop(); // Extract numeric ID
-                      navigate(`/products/${numericId}/sizing`);
-                    }}>
+                    {/* Display linked sizing chart ID if it exists */}
+                    {product.metafield ? (
+                      <Text as="p">
+                        Linked Sizing Chart ID: {product.metafield.value}
+                      </Text>
+                    ) : (
+                      <Text as="p">No sizing chart linked.</Text>
+                    )}
+                    {/* Button to link a sizing chart */}
+                    <Button onClick={() => navigate(`/products/${product.id.split('/').pop()}/link-sizing-chart`)}>
                       Link Sizing Chart
                     </Button>
                   </Card>
