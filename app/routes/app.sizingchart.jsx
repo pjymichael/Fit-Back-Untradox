@@ -13,6 +13,13 @@ import {
 } from "@shopify/polaris";
 import { json } from "@remix-run/node";
 import db from "../db.server";
+
+const debugLog = (message, data) => {
+  console.log(`[Debug] ${message}`, {
+    timestamp: new Date().toISOString(),
+    ...data
+  });
+};
 export async function action({ request }) {
   const formData = await request.formData();
   const sizes = JSON.parse(formData.get("sizes"));

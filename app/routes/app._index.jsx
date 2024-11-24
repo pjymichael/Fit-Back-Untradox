@@ -13,7 +13,12 @@ import {
 } from "@shopify/polaris";
 import { authenticate } from "../shopify.server";
 import db from "../db.server"; // Import your Prisma database instance
-
+const debugLog = (message, data) => {
+  console.log(`[Debug] ${message}`, {
+    timestamp: new Date().toISOString(),
+    ...data
+  });
+};
 // Loader function that fetches products and sizing charts
 export async function loader({ request }) {
   const { admin } = await authenticate.admin(request);
@@ -83,7 +88,15 @@ export default function HomePage() {
   const { products, sizingCharts } = useLoaderData(); // Access data from loader
   const navigate = useNavigate();
   const [selectedTab, setSelectedTab] = useState(0);
-  
+  const handleLinkSizingChart = (productId) => {
+    // Extract the numeric ID from the full Shopify ID
+    const cleanId = productId.split('/').pop();
+    debugLog("Navigating to Link Sizing Chart", { 
+      originalId: productId,
+      cleanId
+    });
+    navigate(`/app/products/${cleanId}/link-sizing-chart`);
+  };
   const handleTabChange = (selectedTabIndex) => setSelectedTab(selectedTabIndex);
 
   const tabs = [
@@ -117,7 +130,10 @@ export default function HomePage() {
                       <Text as="p">No sizing chart linked.</Text>
                     )}
                     {/* Button to link a sizing chart */}
-                    <Button onClick={() => navigate(`/products/${product.id.split('/').pop()}/link-sizing-chart`)}>
+                    <Button 
+                      onClick={() => handleLinkSizingChart(product.id)}
+                      // Replace your existing navigation onClick
+                    >
                       Link Sizing Chart
                     </Button>
                   </Card>
