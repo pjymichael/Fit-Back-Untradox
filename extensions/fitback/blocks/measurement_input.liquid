@@ -1,0 +1,46 @@
+<div class="measurement-input-block">
+  <form method="POST" action="/cart/add">
+    <label for="measurement-chest">{{ 'chest' | t }}</label>
+    <input type="text" name="properties[Chest]" id="measurement-chest" placeholder="{{ block.settings.chest }}" />
+
+    <label for="measurement-waist">{{ 'waist' | t }}</label>
+    <input type="text" name="properties[Waist]" id="measurement-waist" placeholder="{{ block.settings.waist }}" />
+
+    <label for="measurement-hip">{{ 'hip' | t }}</label>
+    <input type="text" name="properties[Hip]" id="measurement-hip" placeholder="{{ block.settings.hip }}" />
+
+    <button type="submit" class="measurement-submit-btn">{{ 'Add to Cart' | t }}</button>
+  </form>
+</div>
+{% schema %}
+{
+  "name": "Measurement Input",
+  "target": "section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "label_text",
+      "label": "Label Text",
+      "default": "Enter your measurements"
+    },
+    {
+      "type": "text",
+      "id": "chest",
+      "label": "Chest Placeholder",
+      "default": "Enter your chest measurement"
+    },
+    {
+      "type": "text",
+      "id": "waist",
+      "label": "Waist Placeholder",
+      "default": "Enter your waist measurement"
+    },
+    {
+      "type": "text",
+      "id": "hip",
+      "label": "Hip Placeholder",
+      "default": "Enter your hip measurement"
+    }
+  ]
+}
+{% endschema %}

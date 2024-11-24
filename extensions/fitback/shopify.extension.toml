@@ -1,3 +1,8 @@
 name = "Fitback"
 type = "theme"
 
+[blocks]
+  [blocks.measurement_input]
+  name = "Measurement Input Block"
+  target = "product"
+  snippet = "measurement_input"

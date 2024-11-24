@@ -3,7 +3,7 @@
 client_id = "6d959e3b05f5a0b80990424ba2b0a14d"
 name = "Fitback"
 handle = "fitback-5"
-application_url = "https://pork-rarely-fax-hosting.trycloudflare.com"
+application_url = "https://hugh-drunk-compact-philippines.trycloudflare.com"
 embedded = true
 
 [build]
@@ -17,9 +17,9 @@ scopes = "read_products,write_products"
 
 [auth]
 redirect_urls = [
-  "https://pork-rarely-fax-hosting.trycloudflare.com/auth/callback",
-  "https://pork-rarely-fax-hosting.trycloudflare.com/auth/shopify/callback",
-  "https://pork-rarely-fax-hosting.trycloudflare.com/api/auth/callback"
+  "https://hugh-drunk-compact-philippines.trycloudflare.com/auth/callback",
+  "https://hugh-drunk-compact-philippines.trycloudflare.com/auth/shopify/callback",
+  "https://hugh-drunk-compact-philippines.trycloudflare.com/api/auth/callback"
 ]
 
 [webhooks]
