@@ -119,67 +119,136 @@ export async function action({ request, params }) {
   const productGlobalId = `gid://shopify/Product/${id}`;
   const formData = await request.formData();
   const sizingChartId = formData.get("sizingChartId");
-
-  console.log("Linking sizing chart:", { productGlobalId, sizingChartId });
+  const parsedSizingChartId = parseInt(sizingChartId, 10);
+  
+  if (isNaN(parsedSizingChartId)) {
+    return json({ error: "Invalid Sizing Chart ID" }, { status: 400 });
+  }
 
   try {
-    // Update metafield
     const response = await admin.graphql(
-      `
-      mutation LinkSizingChart($metafields: [MetafieldsSetInput!]!) {
-        metafieldsSet(metafields: $metafields) {
+      `#graphql
+      mutation LinkSizingChart($input: [MetafieldsSetInput!]!) {
+        metafieldsSet(metafields: $input) {
           metafields {
             id
+            key
+            namespace
             value
+            type
           }
           userErrors {
             field
             message
+            code
           }
         }
       }
       `,
       {
-        metafields: [
-          {
-            namespace: "custom",
-            key: "sizing_chart",
-            value: sizingChartId,
-            type: "integer",
-            ownerId: productGlobalId,
-          },
-        ],
+        variables: {
+          input: [
+            {
+              namespace: "custom",
+              key: "sizing_chart",
+              value: parsedSizingChartId.toString(), // Shopify requires the value as a string even for number_integer
+              type: "number_integer",
+              ownerId: productGlobalId,
+            },
+          ],
+        },
       }
     );
 
-    console.log("Metafield update response:", response);
+    const responseJson = await response.json();
+    console.log("Metafield update response:", JSON.stringify(responseJson, null, 2));
 
-    if (response?.metafieldsSet?.userErrors?.length > 0) {
-      console.error("User errors:", response.metafieldsSet.userErrors);
-      throw new Error("Failed to update metafield due to user errors.");
+    if (responseJson.errors?.length > 0) {
+      console.error("GraphQL errors:", responseJson.errors);
+      return json({ 
+        error: "GraphQL Error",
+        details: responseJson.errors[0].message 
+      }, { status: 400 });
     }
 
-    return redirect("/");
+    if (responseJson.data?.metafieldsSet?.userErrors?.length > 0) {
+      const errors = responseJson.data.metafieldsSet.userErrors;
+      console.error("Metafield update errors:", errors);
+      return json({ 
+        error: "Failed to update metafield",
+        details: errors 
+      }, { status: 400 });
+    }
+
+    if (!responseJson.data?.metafieldsSet?.metafields?.length) {
+      return json({ 
+        error: "No metafield was created",
+        details: "The mutation completed but no metafield was returned" 
+      }, { status: 400 });
+    }
+
+    return redirect("/app");
   } catch (error) {
     console.error("Action Error:", error);
-    throw new Response("Failed to link sizing chart", {
-      status: 500,
-    });
+    return json({ 
+      error: "Failed to link sizing chart",
+      details: error.message 
+    }, { status: 500 });
   }
 }
-
 // Client-side component
 export default function LinkSizingChartPage() {
-  const { product, sizingCharts } = useLoaderData(); // Access data
+  const { product, sizingCharts } = useLoaderData();
   const navigate = useNavigate();
   const [selectedSizingChart, setSelectedSizingChart] = useState("");
+  const [error, setError] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSelectChange = (value) => setSelectedSizingChart(value);
+  const handleSelectChange = (value) => {
+    setSelectedSizingChart(value);
+    setError(null);
+  };
+
+  const handleSubmit = async () => {
+    setIsLoading(true);
+    setError(null);
+    
+    const formData = new FormData();
+    formData.append("sizingChartId", selectedSizingChart);
+
+    try {
+      const response = await fetch(window.location.pathname, {
+        method: "POST",
+        body: formData,
+      });
+
+      const result = await response.json().catch(() => null);
+      
+      if (response.ok) {
+        navigate("/app");
+      } else {
+        const errorMessage = result?.details 
+          ? `${result.error}: ${JSON.stringify(result.details)}`
+          : result?.error || "Failed to link sizing chart. Please try again.";
+        setError(errorMessage);
+      }
+    } catch (error) {
+      setError("An unexpected error occurred. Please try again.");
+      console.error("Unexpected error:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <Page title={`Link Sizing Chart to ${product.title}`}>
       <Layout>
         <Layout.Section>
+          {error && (
+            <Banner status="critical" title="Error">
+              <p>{error}</p>
+            </Banner>
+          )}
           <Card title="Select a Sizing Chart" sectioned>
             <Select
               label="Sizing Chart"
@@ -187,38 +256,26 @@ export default function LinkSizingChartPage() {
                 { label: "Select a Sizing Chart", value: "" },
                 ...sizingCharts.map((chart) => ({
                   label: `Sizing Chart ID: ${chart.id}`,
-                  value: chart.id,
+                  value: chart.id.toString(),
                 })),
               ]}
               value={selectedSizingChart}
               onChange={handleSelectChange}
             />
-            <Button
-              primary
-              onClick={async () => {
-                const formData = new FormData();
-                formData.append("sizingChartId", selectedSizingChart);
-
-                const response = await fetch(window.location.pathname, { 
-                  method: "post", 
-                  body: formData 
-                });
-
-                if (response.ok) {
-                  alert("Sizing Chart linked successfully!");
-                  navigate("/");
-                } else {
-                  const error = await response.json();
-                  console.error("Error linking sizing chart:", error);
-                  alert("Failed to link sizing chart. Please try again.");
-                }
-              }}
-              disabled={!selectedSizingChart}
-            >
-              Link Sizing Chart
-            </Button>
+            <div style={{ marginTop: "1rem" }}>
+              <Button
+                primary
+                onClick={handleSubmit}
+                disabled={!selectedSizingChart || isLoading}
+                loading={isLoading}
+              >
+                Link Sizing Chart
+              </Button>
+            </div>
           </Card>
-          <Button onClick={() => navigate(-1)}>Back</Button>
+          <div style={{ marginTop: "1rem" }}>
+            <Button onClick={() => navigate(-1)}>Back</Button>
+          </div>
         </Layout.Section>
       </Layout>
     </Page>

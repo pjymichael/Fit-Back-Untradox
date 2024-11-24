@@ -49,7 +49,7 @@ export async function loader({ request }) {
                 }
               }
             }
-            metafield(namespace: "custom", key: "sizing_chart_id") {
+            metafield(namespace: "custom", key: "sizing_chart") {
               namespace
               key
               value
