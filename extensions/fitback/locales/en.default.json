@@ -1,10 +1,9 @@
 {
-  "ratings": {
-    "stars": {
-      "label": "Ratings"
-    },
-    "home": {
-      "recommendationText": "Recommended Product!"
-    }
+  "measurement_modal": {
+    "title": "Enter Your Measurements",
+    "chest": "Chest",
+    "waist": "Waist",
+    "hip": "Hip",
+    "submit": "Submit"
   }
 }

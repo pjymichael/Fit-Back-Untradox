@@ -1,8 +1,17 @@
+[[extensions]]
+type = "theme"  # Correct extension type
 name = "Fitback"
-type = "theme"
+handle = "fitback"
 
-[blocks]
-  [blocks.measurement_input]
-  name = "Measurement Input Block"
-  target = "product"
-  snippet = "measurement_input"
+[[extensions.blocks]]
+name = "Modal Button"
+target = "section"
+file_name = "blocks/modal_button.liquid"
+
+[[extensions.blocks.assets]]
+name = "modal.js"
+type = "script"
+
+[[extensions.blocks.assets]]
+name = "modal.css"
+type = "stylesheet"
