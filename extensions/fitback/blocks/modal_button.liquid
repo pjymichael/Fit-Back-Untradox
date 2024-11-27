@@ -1,0 +1,20 @@
+{{ 'modal.css' | asset_url | stylesheet_tag }}
+
+<div id="modal-overlay" class="modal-overlay hidden">
+  <div class="modal-content">
+    <h1>Enter Your Measurements</h1>
+    <button id="close-modal" class="close-button">Close</button>
+  </div>
+</div>
+
+<button id="open-modal" class="open-modal-button">Enter Your Measurements</button>
+
+<script src="{{ 'modal.js' | asset_url }}" defer></script>
+
+{% schema %}
+{
+  "name": "Modal Button",
+  "target": "section",
+  "settings": []
+}
+{% endschema %}
