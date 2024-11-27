@@ -13,6 +13,7 @@ import {
 } from "@shopify/polaris";
 import { authenticate } from "../shopify.server";
 import db from "../db.server"; // Import your Prisma database instance
+import SizingMatch from "./app.sizingMatch";
 const debugLog = (message, data) => {
   console.log(`[Debug] ${message}`, {
     timestamp: new Date().toISOString(),
@@ -22,7 +23,7 @@ const debugLog = (message, data) => {
 // Loader function that fetches products and sizing charts
 export async function loader({ request }) {
   const { admin } = await authenticate.admin(request);
-  
+
   // GraphQL query to fetch products and metafields
 // GraphQL query to fetch products and metafields
   const productResponse = await admin.graphql(`
@@ -91,7 +92,7 @@ export default function HomePage() {
   const handleLinkSizingChart = (productId) => {
     // Extract the numeric ID from the full Shopify ID
     const cleanId = productId.split('/').pop();
-    debugLog("Navigating to Link Sizing Chart", { 
+    debugLog("Navigating to Link Sizing Chart", {
       originalId: productId,
       cleanId
     });
@@ -102,6 +103,7 @@ export default function HomePage() {
   const tabs = [
     { id: "products-tab", content: "Products", panelID: "products-content" },
     { id: "sizing-charts-tab", content: "Sizing Charts", panelID: "sizing-charts-content" },
+    { id: "sizing-match-tab", content: "Find My Size", panelID: "sizing-match-content" },
   ];
 
   return (
@@ -130,7 +132,7 @@ export default function HomePage() {
                       <Text as="p">No sizing chart linked.</Text>
                     )}
                     {/* Button to link a sizing chart */}
-                    <Button 
+                    <Button
                       onClick={() => handleLinkSizingChart(product.id)}
                       // Replace your existing navigation onClick
                     >
@@ -184,6 +186,12 @@ export default function HomePage() {
               )}
             </Layout.Section>
           )}
+            {selectedTab === 2 && (
+                <Layout.Section>
+                <Button>Hi</Button>
+                <SizingMatch />
+              </Layout.Section>
+            )}
           </Layout>
         </Layout.Section>
       </Tabs>
