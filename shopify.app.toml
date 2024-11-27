@@ -3,7 +3,7 @@
 client_id = "6d959e3b05f5a0b80990424ba2b0a14d"
 name = "Fitback"
 handle = "fitback-5"
-application_url = "https://dna-li-name-along.trycloudflare.com"
+application_url = "https://poor-crazy-copper-first.trycloudflare.com"
 embedded = true
 
 [build]
@@ -17,9 +17,9 @@ scopes = "read_products,write_products"
 
 [auth]
 redirect_urls = [
-  "https://dna-li-name-along.trycloudflare.com/auth/callback",
-  "https://dna-li-name-along.trycloudflare.com/auth/shopify/callback",
-  "https://dna-li-name-along.trycloudflare.com/api/auth/callback"
+  "https://poor-crazy-copper-first.trycloudflare.com/auth/callback",
+  "https://poor-crazy-copper-first.trycloudflare.com/auth/shopify/callback",
+  "https://poor-crazy-copper-first.trycloudflare.com/api/auth/callback"
 ]
 
 [webhooks]
