@@ -14,17 +14,11 @@
   transition: visibility 0.3s ease, opacity 0.3s ease;
 }
 
-.modal-overlay.hidden {
-  visibility: hidden;
-  opacity: 0;
-}
-
 .modal-overlay.visible {
   visibility: visible;
   opacity: 1;
 }
 
-/* Modal Content */
 .modal-content {
   background: white;
   padding: 20px;
@@ -32,5 +26,31 @@
   width: 400px;
   max-width: 90%;
   text-align: center;
-  z-index: 1001;
+}
+
+.close-button {
+  background: #f44336;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  margin-top: 20px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.close-button:hover {
+  background: #d32f2f;
+}
+
+.open-modal-button {
+  background: #4caf50;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.open-modal-button:hover {
+  background: #388e3c;
 }

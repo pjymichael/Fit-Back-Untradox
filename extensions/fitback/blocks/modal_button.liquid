@@ -1,14 +1,25 @@
 {{ 'modal.css' | asset_url | stylesheet_tag }}
+{% if product.metafields.custom.sizing_chart %}
+  {% assign sizing_chart_id = product.metafields.custom.sizing_chart.value %}
+{% else %}
+  {% assign sizing_chart_id = 'null' %}
+{% endif %}
 
 <div id="modal-overlay" class="modal-overlay hidden">
   <div class="modal-content">
-    <h1>Enter Your Measurements</h1>
+    <h1>Sizing Chart</h1>
+    <div id="sizing-chart-container">
+      <!-- Sizing chart data will be dynamically rendered here -->
+    </div>
     <button id="close-modal" class="close-button">Close</button>
   </div>
 </div>
 
 <button id="open-modal" class="open-modal-button">Enter Your Measurements</button>
 
+<script>
+  window.sizingChartId = "{{ sizing_chart_id }}";
+</script>
 <script src="{{ 'modal.js' | asset_url }}" defer></script>
 
 {% schema %}
