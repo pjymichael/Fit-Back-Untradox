@@ -80,6 +80,7 @@ export async function loader({ request }) {
       },
     },
   });
+  console.log(json({ products, sizingCharts }))
   return json({ products, sizingCharts });
 }
 

@@ -2,89 +2,144 @@ document.addEventListener("DOMContentLoaded", () => {
   const overlay = document.getElementById("modal-overlay");
   const openButton = document.getElementById("open-modal");
   const closeButton = document.getElementById("close-modal");
-  const sizingChartContainer = document.getElementById("sizing-chart-container");
-  const sizingChartId = window.sizingChartId;
+  const form = document.getElementById("measurement-form");
+  const recommendationContainer = document.getElementById("recommendation-container");
+  const recommendedSizeElement = document.getElementById("recommended-size");
 
-  if (!overlay || !openButton || !closeButton || !sizingChartContainer) {
-    console.error("Modal elements not found");
+  if (!overlay || !openButton || !closeButton || !form || !recommendationContainer || !recommendedSizeElement) {
+    console.error("Modal elements not found.");
     return;
   }
 
-  openButton.addEventListener("click", async () => {
-    console.log("Opening modal...");
-    overlay.classList.add("visible");
-
-    if (sizingChartId === "null") {
-      sizingChartContainer.innerHTML = "<p>No sizing chart linked to this product.</p>";
-      return;
-    }
-
-    try {
-      const response = await fetch(`/api/sizing-chart/${sizingChartId}`);
-      if (!response.ok) {
-        throw new Error(`Failed to fetch sizing chart: ${response.statusText}`);
+  // Hardcoded sizing chart data
+  const sizingChart = {
+    id: 1,
+    unit: "cm",
+    sizes: [
+      {
+        label: "XS/38",
+        measurements: {
+          Chest: 95,
+          Waist: 94,
+          Shoulders: 43,
+          Sleeve: 62
+        }
+      },
+      {
+        label: "S/39",
+        measurements: {
+          Chest: 99,
+          Waist: 98,
+          Shoulders: 44,
+          Sleeve: 63
+        }
+      },
+      {
+        label: "M/40",
+        measurements: {
+          Chest: 104,
+          Waist: 103,
+          Shoulders: 45,
+          Sleeve: 65
+        }
+      },
+      {
+        label: "L/41",
+        measurements: {
+          Chest: 110,
+          Waist: 109,
+          Shoulders: 46,
+          Sleeve: 66
+        }
+      },
+      {
+        label: "XL/42",
+        measurements: {
+          Chest: 116,
+          Waist: 115,
+          Shoulders: 47,
+          Sleeve: 67
+        }
       }
+    ]
+  };
 
-      const data = await response.json();
-      renderSizingChart(data);
-    } catch (error) {
-      console.error("Error fetching sizing chart:", error);
-      sizingChartContainer.innerHTML = "<p>Failed to load sizing chart. Please try again later.</p>";
-    }
+  console.log("Sizing chart loaded:", sizingChart);
+
+  // Open the modal
+  openButton.addEventListener("click", () => {
+    overlay.classList.remove("hidden");
+    overlay.classList.add("visible");
+    recommendationContainer.classList.add("hidden"); // Hide recommendation initially
   });
 
+  // Close the modal
   closeButton.addEventListener("click", () => {
-    console.log("Closing modal...");
     overlay.classList.remove("visible");
+    overlay.classList.add("hidden");
   });
 
   overlay.addEventListener("click", (event) => {
     if (event.target === overlay) {
-      console.log("Overlay clicked, closing modal...");
       overlay.classList.remove("visible");
+      overlay.classList.add("hidden");
     }
   });
 
-  function renderSizingChart(data) {
-    if (!data || !data.sizes) {
-      sizingChartContainer.innerHTML = "<p>Invalid sizing chart data.</p>";
+  // Handle form submission
+  form.addEventListener("submit", (event) => {
+    event.preventDefault();
+
+    if (!sizingChart || !sizingChart.sizes) {
+      console.error("Sizing chart is unavailable or not loaded.");
+      recommendedSizeElement.textContent = "Sizing chart not available. Please try again later.";
+      recommendationContainer.classList.remove("hidden");
       return;
     }
 
-    let tableHTML = `
-      <table style="width: 100%; border-collapse: collapse;">
-        <thead>
-          <tr>
-            <th style="border: 1px solid #ccc; padding: 8px;">Size</th>
-    `;
+    const chest = parseFloat(document.getElementById("chest").value);
+    const height = parseFloat(document.getElementById("height").value);
+    const hip = parseFloat(document.getElementById("hip").value);
 
-    // Render measurement headers
-    if (data.sizes[0]?.measurements) {
-      Object.keys(data.sizes[0].measurements).forEach((measurement) => {
-        tableHTML += `<th style="border: 1px solid #ccc; padding: 8px;">${measurement}</th>`;
-      });
+    console.log("Measurements Submitted:");
+    console.log(`Chest: ${chest} cm`);
+    console.log(`Height: ${height} cm`);
+    console.log(`Hip: ${hip} cm`);
+
+    const recommendedSize = recommendSize(chest, height, hip, sizingChart.sizes);
+
+    if (recommendedSize) {
+      recommendedSizeElement.textContent = recommendedSize.label;
+    } else {
+      recommendedSizeElement.textContent = "No suitable size found for the given measurements.";
     }
 
-    tableHTML += `
-          </tr>
-        </thead>
-        <tbody>
-    `;
+    recommendationContainer.classList.remove("hidden"); // Show the recommendation
+  });
 
-    // Render rows of data
-    data.sizes.forEach((size) => {
-      tableHTML += `<tr><td style="border: 1px solid #ccc; padding: 8px;">${size.label}</td>`;
-      Object.values(size.measurements).forEach((value) => {
-        tableHTML += `<td style="border: 1px solid #ccc; padding: 8px;">${value}</td>`;
-      });
-      tableHTML += `</tr>`;
+  function recommendSize(chest, height, hip, sizes) {
+    console.log("Finding best size for:", { chest, height, hip });
+    console.log("Available sizes:", sizes);
+
+    let bestFit = null;
+    let smallestDifference = Infinity;
+
+    sizes.forEach((size) => {
+      console.log("Checking size:", size);
+
+      const chestDiff = Math.abs(size.measurements.Chest - chest);
+      const hipDiff = Math.abs(size.measurements.Waist - hip); // Waist here is mapped to hip
+      const totalDiff = chestDiff + hipDiff;
+
+      console.log(`Size ${size.label}: Chest Diff = ${chestDiff}, Hip Diff = ${hipDiff}, Total Diff = ${totalDiff}`);
+
+      if (totalDiff < smallestDifference) {
+        smallestDifference = totalDiff;
+        bestFit = size;
+      }
     });
 
-    tableHTML += `
-        </tbody>
-      </table>
-    `;
-
-    sizingChartContainer.innerHTML = tableHTML;
+    console.log("Best fit:", bestFit);
+    return bestFit;
   }
 });

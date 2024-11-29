@@ -1,0 +1,54 @@
+{
+    "sizingChart": {
+      "id": 1,
+      "unit": "cm",
+      "sizes": [
+        {
+          "label": "XS/38",
+          "measurements": {
+            "Chest": 95,
+            "Waist": 94,
+            "Shoulders": 43,
+            "Sleeve": 62
+          }
+        },
+        {
+          "label": "S/39",
+          "measurements": {
+            "Chest": 99,
+            "Waist": 98,
+            "Shoulders": 44,
+            "Sleeve": 63
+          }
+        },
+        {
+          "label": "M/40",
+          "measurements": {
+            "Chest": 104,
+            "Waist": 103,
+            "Shoulders": 45,
+            "Sleeve": 65
+          }
+        },
+        {
+          "label": "L/41",
+          "measurements": {
+            "Chest": 110,
+            "Waist": 109,
+            "Shoulders": 46,
+            "Sleeve": 66
+          }
+        },
+        {
+          "label": "XL/42",
+          "measurements": {
+            "Chest": 116,
+            "Waist": 115,
+            "Shoulders": 47,
+            "Sleeve": 67
+          }
+        }
+      ]
+    }
+  }
+  
