@@ -2,31 +2,36 @@
 
 <div id="modal-overlay" class="modal-overlay hidden">
   <div class="modal-content">
-    <h2>Enter Your Measurements</h2>
-    <form id="measurement-form">
-      <label for="chest">Chest (cm):</label>
-      <input type="number" id="chest" name="chest" placeholder="Enter chest measurement" required>
+    <nav class="modal-tabs">
+      <button id="tab-fit" class="tab-button active">My Fit</button>
+      <button id="tab-profile" class="tab-button">My Profile</button>
+    </nav>
+        <!-- Screen 1: "My Fit" -->
+    <section id="screen-fit" class="tab-screen active">
+      <h3>Your Size Is:</h3>
+      <p>This content is shown when “My Fit” is active.</p>
+      <!-- other markup... -->
+      <section id="screen-fit-recommend">
+        <nav class= "fit-tabs">
+          <button id="fit-slim" class="tab-button">Slim</button>
+          <button id="fit-regular" class="tab-button active">Regular</button>
+          <button id="fit-oversize" class="tab-button">Oversized</button>
+        </nav>
+        <p>we recommend size M based on your measurement</p>
+      </section>
+    </section>
 
-      <label for="height">Heighmhgvhgvhgvt (cm):</label>
-      <input type="number" id="height" name="height" placeholder="Enter height measurement" required>
-
-      <label for="hip">Hip (cm):</label>
-      <input type="number" id="hip" name="hip" placeholder="Enter hip measurement" required>
-
-      <button type="submit" id="submit-measurements" class="submit-button">Submit</button>
-    </form>
-
-    <!-- Placeholder for Recommended Size -->
-    <div id="recommendation-container" class="recommendation-container hidden">
-      <h3>Recommended Size:</h3>
-      <p id="recommended-size">N/A</p>
-    </div>
-
-    <button id="close-modal" class="close-button">Close</button>
+    <!-- Screen 2: "My Profile" -->
+    <section id="screen-profile" class="tab-screen">
+      <h2>My Profile</h2>
+      <p>This content is shown when “My Profile” is active.</p>
+      <!-- other markup... -->
+    </section>
   </div>
 </div>
 
-<button id="open-modal" class="open-modal-button">Enter Measurements</button>
+
+<button id="open-modal" class="open-modal-button">Find My Size</button>
 
 <script src="{{ 'modal.js' | asset_url }}" defer></script>
 

@@ -1,5 +1,5 @@
 .modal-overlay {
-  position: fixed;
+  position:fixed;
   top: 0;
   left: 0;
   width: 100%;
@@ -8,7 +8,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1000;
+  z-index: 9999;
 }
 
 .modal-overlay.hidden {
@@ -18,9 +18,13 @@
 .modal-content {
   background: white;
   padding: 20px;
-  border-radius: 5px;
+  border-radius: 15px;
   width: 300px;
   text-align: center;
+}
+
+.modal-content.hidden {
+  display: none;
 }
 
 .modal-content h2 {
@@ -67,4 +71,62 @@
 
 .open-modal-button:hover {
   background: #218838;
+}
+
+
+.modal-tabs {
+  display: flex;
+  
+}
+
+.modal-tabs button {
+  width: 50%;
+  background: none;
+  border:none;
+  border-bottom: 1px solid black;
+}
+
+.modal-tabs .tab-button {
+  flex-grow:1;
+  background: none;
+  border:none;
+  border-bottom: 3px solid #E6E4E4;
+  color: #E6E4E4;
+  padding: 10px;
+}
+
+.modal-tabs .tab-button.active {
+  color: #000;
+  border-bottom: 3px solid #000;
+}
+
+.fit-tabs {
+  display:flex
+}
+.fit-tabs .tab-button {
+  flex-grow:1;
+  background: none;
+  border:none;
+  border-bottom: 3px solid #E6E4E4;
+  color: #E6E4E4;
+  padding: 10px;
+}
+
+.fit-tabs .tab-button.active {
+  color: #000;
+  border-bottom: 3px solid #000;
+}
+
+.tab-screen {
+  display: none;
+}
+
+.tab-screen.active {
+  display: block;
+}
+
+/* Active tab styling: highlight the clicked tab */
+.tab-button.active {
+  border-bottom: 2px solid #000; 
+  font-weight: bold;
 }
