@@ -1,9 +1,10 @@
 {{ 'modal.css' | asset_url | stylesheet_tag }}
 
+
 <div id="modal-overlay" class="modal-overlay hidden">
   <div class="modal-content">
     <nav class="modal-tabs">
-      <button id="tab-fit" class="tab-button active">My Fit</button>
+      <button id="tab-fit" class="tab-button active">My adsdsaFit</button>
       <button id="tab-profile" class="tab-button">My Profile</button>
     </nav>
         <!-- Screen 1: "My Fit" -->
@@ -23,9 +24,14 @@
 
     <!-- Screen 2: "My Profile" -->
     <section id="screen-profile" class="tab-screen">
-      <h2>My Profile</h2>
-      <p>This content is shown when “My Profile” is active.</p>
-      <!-- other markup... -->
+      <div class="camera-container">
+        <button id="start-camera">Enable Camera</button>
+
+        <video id="camera-preview" autoplay playsinline></video>
+        <canvas id="camera-output" style="display: none;"></canvas>
+        
+        <button id="capture-photo" style="display: none;">Capture Photo</button>
+      </div>
     </section>
   </div>
 </div>
@@ -33,6 +39,10 @@
 
 <button id="open-modal" class="open-modal-button">Find My Size</button>
 
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-core"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-converter"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgl"></script>
 <script src="{{ 'modal.js' | asset_url }}" defer></script>
 
 {% schema %}

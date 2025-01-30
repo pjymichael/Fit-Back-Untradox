@@ -3,7 +3,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const overlay = document.getElementById("modal-overlay");
   const mainContent = document.getElementById("modal-content")
   const openButton = document.getElementById("open-modal");
-  const closeButton = document.getElementById("close-modal");
 
   // -- NEW: Append overlay to <body> so it's not nested in a limiting container --
   document.body.appendChild(overlay);
@@ -12,8 +11,8 @@ document.addEventListener("DOMContentLoaded", () => {
   openButton.addEventListener("click", () => {
     overlay.classList.remove("hidden");
     overlay.classList.add("visible");
-    mainContent.classList.remove("hidden");
-    mainContent.classList.add("visible");
+    // mainContent.classList.remove("hidden");
+    // mainContent.classList.add("visible");
   });
 
   // Close modal if user clicks *outside* modal-content
@@ -21,8 +20,8 @@ document.addEventListener("DOMContentLoaded", () => {
     if (event.target === overlay) {
       overlay.classList.remove("visible");
       overlay.classList.add("hidden");
-      mainContent.classList.remove("visible");
-      mainContent.classList.add("hidden");
+      // mainContent.classList.remove("visible");
+      // mainContent.classList.add("hidden");
     }
   });
    // Grab tab buttons
@@ -74,17 +73,14 @@ document.addEventListener("DOMContentLoaded", () => {
  
      screenProfile.classList.add("active");
      screenFit.classList.remove("active");
+        // Make sure the camera and canvas are visible
+    video.style.display = "block";
+    canvas.style.display = "block";
    });
    // 4. Event handlers: open/close the modal
    openButton.addEventListener("click", () => {
      overlay.classList.remove("hidden");
      overlay.classList.add("visible");
-     recommendationContainer.classList.add("hidden"); // Hide recommendation initially
-   });
- 
-   closeButton.addEventListener("click", () => {
-     overlay.classList.remove("visible");
-     overlay.classList.add("hidden");
    });
  
    // Close modal if user clicks *outside* modal-content
@@ -94,48 +90,97 @@ document.addEventListener("DOMContentLoaded", () => {
        overlay.classList.add("hidden");
      }
    });
+
+   const video = document.getElementById('camera-preview');
+   const canvas = document.getElementById('camera-output');
+   const startButton = document.getElementById('start-camera');
+   const captureButton = document.getElementById('capture-photo');
  
-   // 5. Handle form submission and size recommendation
-   form.addEventListener("submit", (event) => {
-     event.preventDefault();
+   let stream;
+   let detector;
+   let isDetecting = false;
  
-     if (!sizingChart || !sizingChart.sizes) {
-       console.error("Sizing chart is unavailable or not loaded.");
-       recommendedSizeElement.textContent = "Sizing chart not available. Please try again later.";
-       recommendationContainer.classList.remove("hidden");
+   // Load TensorFlow and Pose Detector
+   async function initializePoseDetector() {
+     await tf.ready();
+     await tf.setBackend('webgl');
+     detector = await poseDetection.createDetector(poseDetection.SupportedModels.MoveNet, {
+       modelType: poseDetection.movenet.modelType.SINGLEPOSE_LIGHTNING,
+     });
+     console.log("Pose detector initialized:", detector);
+   }
+ 
+   async function startPoseDetection() {
+     if (!detector) await initializePoseDetector();
+     isDetecting = true;
+     detectPose();
+   }
+ 
+   async function detectPose() {
+     if (!isDetecting || !video || video.readyState < 2) {
+       requestAnimationFrame(detectPose);
        return;
      }
  
-     const chest = parseFloat(document.getElementById("chest").value);
-     const height = parseFloat(document.getElementById("height").value);
-     const hip = parseFloat(document.getElementById("hip").value);
+     const poses = await detector.estimatePoses(video, { flipHorizontal: false });
+     if (poses.length > 0) console.log("Detected Poses:", poses);
  
-     const recommendedSize = recommendSize(chest, height, hip, sizingChart.sizes);
+     drawPose(poses);
+     requestAnimationFrame(detectPose);
+   }
  
-     if (recommendedSize) {
-       recommendedSizeElement.textContent = recommendedSize.label;
-     } else {
-       recommendedSizeElement.textContent = "No suitable size found for the given measurements.";
-     }
+   function drawPose(poses) {
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
  
-     recommendationContainer.classList.remove("hidden"); // Show the recommendation
+     poses.forEach(pose => {
+       pose.keypoints.forEach(keypoint => {
+         if (keypoint.score > 0.5) {
+           const x = keypoint.x * (canvas.width / video.videoWidth);
+           const y = keypoint.y * (canvas.height / video.videoHeight);
+           
+           ctx.beginPath();
+           ctx.arc(x, y, 5, 0, 2 * Math.PI);
+           ctx.fillStyle = 'yellow';
+           ctx.fill();
+         }
+       });
+     });
+   }
+ 
+   startButton.addEventListener("click", async () => {
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      video.srcObject = stream;
+      video.play();
+  
+      video.style.display = 'block'; // ✅ Ensure video is visible
+      video.onloadeddata = () => {
+        console.log("Video loaded, starting pose detection...");
+        startPoseDetection();
+        captureButton.style.display = 'block';
+        startButton.style.display = 'none';
+      };
+    } catch (error) {
+      console.error('Camera error:', error);
+    }
+  });
+ 
+   captureButton.addEventListener('click', () => {
+     canvas.width = video.videoWidth;
+     canvas.height = video.videoHeight;
+     canvas.getContext('2d').drawImage(video, 0, 0);
+     
+     const photoData = canvas.toDataURL('image/jpeg');
+     console.log('Captured photo:', photoData);
    });
-
-  function recommendSize(chest, height, hip, sizes) {
-    let bestFit = null;
-    let smallestDifference = Infinity;
-
-    sizes.forEach((size) => {
-      const chestDiff = Math.abs(size.measurements.Chest - chest);
-      const hipDiff   = Math.abs(size.measurements.Waist - hip); // Using waist as proxy for hip
-      const totalDiff = chestDiff + hipDiff;
-
-      if (totalDiff < smallestDifference) {
-        smallestDifference = totalDiff;
-        bestFit = size;
-      }
-    });
-
-    return bestFit;
-  }
+ 
+   window.addEventListener('beforeunload', () => {
+     if (stream) stream.getTracks().forEach(track => track.stop());
+   });
+   
 });
+
+

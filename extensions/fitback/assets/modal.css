@@ -130,3 +130,47 @@
   border-bottom: 2px solid #000; 
   font-weight: bold;
 }
+
+
+
+.camera-container {
+  text-align: center;
+  padding: 20px;
+}
+
+#camera-preview {
+  width: 100%;
+  max-width: 500px;
+  border: 2px solid #ddd;
+  margin: 20px 0;
+}
+
+button {
+  background: #2a2a2a;
+  color: white;
+  padding: 12px 24px;
+  border: none;
+  cursor: pointer;
+}
+
+
+#pose-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;  /* Ensure it covers video */
+  height: 100%;
+  z-index: 10;   /* Ensure it's above the video */
+  pointer-events: none; /* Allow interaction with elements below */
+}
+
+.hidden {
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease-in-out;
+}
+
+.visible {
+  opacity: 1;
+  visibility: visible;
+}
