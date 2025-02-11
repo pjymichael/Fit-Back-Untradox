@@ -1,19 +1,18 @@
 {{ 'modal.css' | asset_url | stylesheet_tag }}
 
-
 <div id="modal-overlay" class="modal-overlay hidden">
   <div class="modal-content">
     <nav class="modal-tabs">
       <button id="tab-fit" class="tab-button active">My adsdsaFit</button>
       <button id="tab-profile" class="tab-button">My Profile</button>
     </nav>
-        <!-- Screen 1: "My Fit" -->
+    <!-- Screen 1: "My Fit" -->
     <section id="screen-fit" class="tab-screen active">
       <h3>Your Size Is:</h3>
       <p>This content is shown when “My Fit” is active.</p>
       <!-- other markup... -->
       <section id="screen-fit-recommend">
-        <nav class= "fit-tabs">
+        <nav class="fit-tabs">
           <button id="fit-slim" class="tab-button">Slim</button>
           <button id="fit-regular" class="tab-button active">Regular</button>
           <button id="fit-oversize" class="tab-button">Oversized</button>
@@ -29,13 +28,12 @@
 
         <video id="camera-preview" autoplay playsinline></video>
         <canvas id="camera-output" style="display: none;"></canvas>
-        
-        <button id="capture-photo" style="display: none;">Capture Photo</button>
+
+        <button id="capture-photo">Capture Photo</button>
       </div>
     </section>
   </div>
 </div>
-
 
 <button id="open-modal" class="open-modal-button">Find My Size</button>
 
