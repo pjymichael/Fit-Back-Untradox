@@ -1,5 +1,5 @@
 .modal-overlay {
-  position:fixed;
+  position: fixed;
   top: 0;
   left: 0;
   width: 100%;
@@ -19,8 +19,20 @@
   background: white;
   padding: 20px;
   border-radius: 15px;
-  width: 300px;
   text-align: center;
+}
+
+@media (min-width: 768px) {
+  .modal-content {
+    /* width: calc(100vw - 100px); */
+    width: 70%;
+  }
+}
+
+@media (max-width: 767px) {
+  .modal-content {
+    width: 90%;
+  }
 }
 
 .modal-content.hidden {
@@ -73,25 +85,23 @@
   background: #218838;
 }
 
-
 .modal-tabs {
   display: flex;
-  
 }
 
 .modal-tabs button {
   width: 50%;
   background: none;
-  border:none;
+  border: none;
   border-bottom: 1px solid black;
 }
 
 .modal-tabs .tab-button {
-  flex-grow:1;
+  flex-grow: 1;
   background: none;
-  border:none;
-  border-bottom: 3px solid #E6E4E4;
-  color: #E6E4E4;
+  border: none;
+  border-bottom: 3px solid #e6e4e4;
+  color: #e6e4e4;
   padding: 10px;
 }
 
@@ -101,14 +111,14 @@
 }
 
 .fit-tabs {
-  display:flex
+  display: flex;
 }
 .fit-tabs .tab-button {
-  flex-grow:1;
+  flex-grow: 1;
   background: none;
-  border:none;
-  border-bottom: 3px solid #E6E4E4;
-  color: #E6E4E4;
+  border: none;
+  border-bottom: 3px solid #e6e4e4;
+  color: #e6e4e4;
   padding: 10px;
 }
 
@@ -127,22 +137,26 @@
 
 /* Active tab styling: highlight the clicked tab */
 .tab-button.active {
-  border-bottom: 2px solid #000; 
+  border-bottom: 2px solid #000;
   font-weight: bold;
 }
 
-
-
 .camera-container {
   text-align: center;
+  position: relative;
   padding: 20px;
 }
 
+#capture-photo {
+  display: none;
+  margin: auto;
+}
 #camera-preview {
   width: 100%;
-  max-width: 500px;
+  /* max-width: 500px; */
   border: 2px solid #ddd;
   margin: 20px 0;
+  transform: scaleX(-1);
 }
 
 button {
@@ -153,14 +167,13 @@ button {
   cursor: pointer;
 }
 
-
-#pose-canvas {
+#camera-output {
   position: absolute;
   top: 0;
   left: 0;
-  width: 100%;  /* Ensure it covers video */
+  width: 100%; /* Ensure it covers video */
   height: 100%;
-  z-index: 10;   /* Ensure it's above the video */
+  z-index: 10; /* Ensure it's above the video */
   pointer-events: none; /* Allow interaction with elements below */
 }
 
