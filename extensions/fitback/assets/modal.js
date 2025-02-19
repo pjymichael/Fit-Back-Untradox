@@ -24,6 +24,28 @@ document.addEventListener("DOMContentLoaded", () => {
       // mainContent.classList.add("hidden");
     }
   });
+
+
+
+  //ONBOARDING
+  const welcomeNextButton = document.getElementById("onboard-welcome-next")
+  const userInputNextButton = document.getElementById("onboard-user-input-next")
+  
+  const onboardWelcome = document.getElementById("onboard-welcome")
+  const onboardUserInput = document.getElementById("onboard-user-input")
+  const onboardCameraInstruction = document.getElementById("onboard-camera-instruction")
+  welcomeNextButton.addEventListener("click", ()=> {
+    onboardWelcome.classList.add("hidden")
+    onboardUserInput.classList.remove("hidden")
+  })
+  userInputNextButton.addEventListener("click",() => {
+    onboardUserInput.classList.add("hidden")
+    onboardCameraInstruction.classList.remove("hidden")
+  })
+
+
+
+
   // Grab tab buttons
   const tabFitBtn = document.getElementById("tab-fit");
   const tabProfileBtn = document.getElementById("tab-profile");

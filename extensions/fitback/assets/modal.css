@@ -20,6 +20,7 @@
   padding: 20px;
   border-radius: 15px;
   text-align: center;
+  max-height: 80vh;
 }
 
 @media (min-width: 768px) {
@@ -166,7 +167,7 @@ button {
   border: none;
   cursor: pointer;
 }
-/*asdad*/
+
 #camera-output {
   position: absolute;
   top: 0;
@@ -176,6 +177,99 @@ button {
   z-index: 10; /* Ensure it's above the video */
   pointer-events: none; /* Allow interaction with elements below */
 }
+
+/*ONBOARDING */
+/*welcome */
+.onboard-welcome {
+  display: flex;
+  gap: 10px;
+  flex-direction: column;
+  padding: 30px;
+
+}
+
+.container-onboard-welcome-steps{
+    gap: 10px;
+    justify-content: start;
+}
+
+.introduction{
+  display: flex;
+  flex-direction: column;
+  justify-self: center;
+  width: 90%;
+}
+
+.introduction__step{
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  text-align: left;
+}
+
+.introduction__img{
+  height: 20px;
+}
+
+.btn{
+  background-color: #000;
+  border-radius: 50px; /* sets the border radius to half of its width to create an oval shape */
+  width: 100%;
+}
+
+.btn__text{
+  color: #fff;
+  font-size: 12px;
+}
+
+
+/*user input*/
+.onboard-user-input{
+  display: flex;
+  gap: 10px;
+  flex-direction: column;
+  padding: 30px;
+
+}
+
+.form div{
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin: 10px 0 10px 0;
+}
+
+.form div select,input {
+  width: 100%;
+  border-radius: 50px;
+  border: #000 2px solid;
+  padding: 5px 0 5px 10px;
+}
+.form div select,input {
+  width: 100%;
+  border-radius: 50px;
+  border: #000 2px solid;
+  padding: 5px 0 5px 10px;
+}
+
+.unit {
+  position:absolute;
+  transform: translateY(125%);
+  left: 50px;
+  font-size: 16px;
+  pointer-events: none;
+  color: gray;
+}
+
+
+
+/*pose guide*/
+.guide-img img {
+  width: 60%;
+}
+
 
 .hidden {
   opacity: 0;

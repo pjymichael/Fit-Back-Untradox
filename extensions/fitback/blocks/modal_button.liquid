@@ -2,36 +2,118 @@
 
 <div id="modal-overlay" class="modal-overlay hidden">
   <div class="modal-content">
-    <nav class="modal-tabs">
-      <button id="tab-fit" class="tab-button active">My adsdsaFit</button>
-      <button id="tab-profile" class="tab-button">My Profile</button>
-    </nav>
-    <!-- Screen 1: "My Fit" -->
-    <section id="screen-fit" class="tab-screen active">
-      <h3>Your Size Is:</h3>
-      <p>This content is shown when “My Fit” is active.</p>
-      <!-- other markup... -->
-      <section id="screen-fit-recommend">
-        <nav class="fit-tabs">
-          <button id="fit-slim" class="tab-button">Slim</button>
-          <button id="fit-regular" class="tab-button active">Regular</button>
-          <button id="fit-oversize" class="tab-button">Oversized</button>
-        </nav>
-        <p>we recommend size M based on your measurement</p>
+    <div class="hidden">
+      <nav class="modal-tabs">
+        <button id="tab-fit" class="tab-button active">My adsdsaFit</button>
+        <button id="tab-profile" class="tab-button">My Profile</button>
+      </nav>
+      <!-- Screen 1: "My Fit" -->
+      <section id="screen-fit" class="tab-screen active">
+        <h3>Your Size Is:</h3>
+        <p>This content is shown when “My Fit” is active.</p>
+        <!-- other markup... -->
+        <section id="screen-fit-recommend">
+          <nav class="fit-tabs">
+            <button id="fit-slim" class="tab-button">Slim</button>
+            <button id="fit-regular" class="tab-button active">Regular</button>
+            <button id="fit-oversize" class="tab-button">Oversized</button>
+          </nav>
+          <p>we recommend size M based on your measurement</p>
+        </section>
       </section>
-    </section>
 
-    <!-- Screen 2: "My Profile" -->
-    <section id="screen-profile" class="tab-screen">
-      <div class="camera-container">
-        <button id="start-camera">Enable Camera</button>
+      <!-- Screen 2: "My Profile" -->
+      <section id="screen-profile" class="tab-screen">
+        <div class="camera-container">
+          <button id="start-camera">Enable Camera</button>
 
-        <video id="camera-preview" autoplay playsinline></video>
-        <canvas id="camera-output" style="display: none;"></canvas>
+          <video id="camera-preview" autoplay playsinline></video>
+          <canvas id="camera-output" style="display: none;"></canvas>
 
-        <button id="capture-photo">Capture Photo</button>
+          <button id="capture-photo">Capture Photo</button>
+        </div>
+      </section>
+    </div>
+    <div id="onboard-welcome" class="onboard-welcome">
+      <div class="logo-hero-text">
+          <img class="logo-hero-text__logo" src="{{'logo.png'|asset_url}}" alt="logo">
+          <p class="logo-hero-text__text">Welcome to Fitback! Find clothing of the perfect size for you in a few simple steps.</p>
       </div>
-    </section>
+      <div class="introduction">
+          <div class="introduction__step">
+              <img class="introduction__img" src="{{'circleone.png'|asset_url}}" alt="">
+              <p>Obtain your measurements easily with our camera technology</p>
+          </div>
+          <div class="introduction__step">
+              <img class="introduction__img" src="{{'circletwo.png'|asset_url}}" alt="">
+              <p>Get personalised sizing recommendations based on your body measurements</p>
+          </div>
+          <div class="introduction__step">
+              <img class="introduction__img" src="{{'circlethree.png'|asset_url}}" alt="">
+              <p>Buy clothes without worrying about wrong sizing!</p>
+          </div>
+      </div>
+      <button id="onboard-welcome-next" class="btn btn--dark">
+          <p class="btn__text">Get Started</p>
+      </button>
+    </div>
+    <div id="onboard-user-input" class="onboard-user-input hidden">
+      <div class="hero">
+        <img class="logo-hero-text__logo" src="{{'tape.png'|asset_url}}" alt="logo">
+        <p class="logo-hero-text__text">Enter the following details to help us with your measurements</p>
+      </div>
+      <form class="form">
+        <div>
+          <label>Gender</label>
+          <select name="gender" id="gender">
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+            <option value="other">Prefer not to say</option>
+          </select>
+        </div>
+        <div>
+            <label>Height</label>
+            <input type="number" id="height-input">
+            <span class="unit" id="unitLabel">cm</span>
+        </div>
+        <div>
+            <label>Age</label>
+            <input type="number" id="age-input">
+        </div>
+      </form>
+      <div class="unit-toggle">
+          <button id="cmBtn" class="toggle-btn active">cm</button>
+          <button id="inchBtn" class="toggle-btn">inch</button>
+      </div>
+      <button id="onboard-user-input-next" class="btn btn--dark">
+          <p class="btn__text">continue</p>
+      </button>
+    </div>
+    <div id="onboard-camera-instruction" class="onboard-camera-instruction hidden">
+      <div class="hero">
+        <h1>Camera Scan</h1>
+        <p class="logo-hero-text__text">Fitback determines your measurements using one picture of your front and one picture of your side. </p>
+      </div>
+      <div class="guide-img">
+        <img src="{{'guide.png'|asset_url}}" alt="">
+      </div>
+      <div class="introduction">
+        <div class="introduction__step">
+            <p>Pose in the camera following the silhouette</p>
+        </div>
+        <div class="introduction__step">
+            <img class="introduction__img" src="{{'alertGrey.png'|asset_url}}" alt="">
+            <p>Wear fitting clothing for more accurate results</p>
+        </div>
+        <div class="introduction__step">
+            <img class="introduction__img" src="{{'alertGrey.png'|asset_url}}" alt="">
+            <p>You may be prompted to adjust your pose</p>
+        </div>
+      </div>
+      <button id="onboard-camera-instruction-next" class="btn btn--dark">
+          <p class="btn__text">Continue with scan</p>
+      </button>
+    </div>
   </div>
 </div>
 
