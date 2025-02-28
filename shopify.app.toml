@@ -3,7 +3,7 @@
 client_id = "6d959e3b05f5a0b80990424ba2b0a14d"
 name = "Fitback"
 handle = "fitback-5"
-application_url = "https://seafood-bd-veterinary-partial.trycloudflare.com"
+application_url = "https://abroad-dom-lu-dumb.trycloudflare.com"
 embedded = true
 
 [build]
@@ -17,9 +17,9 @@ scopes = "read_products,write_products"
 
 [auth]
 redirect_urls = [
-  "https://seafood-bd-veterinary-partial.trycloudflare.com/auth/callback",
-  "https://seafood-bd-veterinary-partial.trycloudflare.com/auth/shopify/callback",
-  "https://seafood-bd-veterinary-partial.trycloudflare.com/api/auth/callback"
+  "https://abroad-dom-lu-dumb.trycloudflare.com/auth/callback",
+  "https://abroad-dom-lu-dumb.trycloudflare.com/auth/shopify/callback",
+  "https://abroad-dom-lu-dumb.trycloudflare.com/api/auth/callback"
 ]
 
 [webhooks]
