@@ -7,6 +7,38 @@ document.addEventListener("DOMContentLoaded", () => {
   // -- NEW: Append overlay to <body> so it's not nested in a limiting container --
   document.body.appendChild(overlay);
 
+
+  //ONBOARDING
+  const welcomeNextButton = document.getElementById("onboard-welcome-next")
+  const userInputNextButton = document.getElementById("onboard-user-input-next")
+  
+  const onboardWelcome = document.getElementById("onboard-welcome")
+  const onboardUserInput = document.getElementById("onboard-user-input")
+  const onboardCameraInstruction = document.getElementById("onboard-camera-prompt")
+  welcomeNextButton.addEventListener("click", ()=> {
+    onboardWelcome.classList.add("hidden")
+    onboardUserInput.classList.remove("hidden")
+  })
+  userInputNextButton.addEventListener("click",() => {
+    onboardUserInput.classList.add("hidden")
+    onboardCameraInstruction.classList.remove("hidden")
+  })
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   // 4. Event handlers: open/close the modal
   openButton.addEventListener("click", () => {
     overlay.classList.remove("hidden");
@@ -24,28 +56,6 @@ document.addEventListener("DOMContentLoaded", () => {
       // mainContent.classList.add("hidden");
     }
   });
-
-
-
-  //ONBOARDING
-  const welcomeNextButton = document.getElementById("onboard-welcome-next")
-  const userInputNextButton = document.getElementById("onboard-user-input-next")
-  
-  const onboardWelcome = document.getElementById("onboard-welcome")
-  const onboardUserInput = document.getElementById("onboard-user-input")
-  const onboardCameraInstruction = document.getElementById("onboard-camera-instruction")
-  welcomeNextButton.addEventListener("click", ()=> {
-    onboardWelcome.classList.add("hidden")
-    onboardUserInput.classList.remove("hidden")
-  })
-  userInputNextButton.addEventListener("click",() => {
-    onboardUserInput.classList.add("hidden")
-    onboardCameraInstruction.classList.remove("hidden")
-  })
-
-
-
-
   // Grab tab buttons
   const tabFitBtn = document.getElementById("tab-fit");
   const tabProfileBtn = document.getElementById("tab-profile");
@@ -215,4 +225,31 @@ document.addEventListener("DOMContentLoaded", () => {
   window.addEventListener("beforeunload", () => {
     if (stream) stream.getTracks().forEach((track) => track.stop());
   });
+
+
+
+  const carousel = document.querySelector(".carousel");
+  const prevBtn = document.querySelector(".prev-btn");
+  const nextBtn = document.querySelector(".next-btn");
+  const items = document.querySelectorAll(".carousel-item");
+  
+  function updateActiveItem(direction) {
+      const selected = document.querySelector(".carousel-item.selected");
+      let index = Array.from(items).indexOf(selected);
+  
+      if (direction === "next" && index < items.length - 1) {
+          index++;
+      } else if (direction === "prev" && index > 0) {
+          index--;
+      }
+  
+      selected.classList.remove("selected");
+      items[index].classList.add("selected");
+  
+      console.log("Active Item:", items[index].textContent.trim()); // Get active item
+  }
+  
+  nextBtn.addEventListener("click", () => updateActiveItem("next"));
+  prevBtn.addEventListener("click", () => updateActiveItem("prev"));
+  
 });
