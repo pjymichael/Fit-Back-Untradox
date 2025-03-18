@@ -1,12 +1,12 @@
 @import url('https://fonts.googleapis.com/css2?family=Mulish:ital,wght@0,200..1000;1,200..1000&display=swap');
 
 
-* {
+#fitback-recommendation * {
   box-sizing: border-box;
 }
 
 /*Setting variables*/
-:root{
+#fitback-recommendation{
   /*modal content*/
   --modal-content-padding: 20px;
 
@@ -25,7 +25,7 @@
 }
 
 /*Typography*/
-h1, h2, h3, h4, h5, h6 {
+#fitback-recommendation h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-primary);
   font-weight: var(--font-weight-bold);
   line-height: 1.2; /* Tighter line-height for headings */
@@ -34,15 +34,15 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* Responsive and scalable heading sizes */
-h1 { font-size: clamp(1.25rem, 5vw, 1.5rem); }  /* Large: 2rem, Small: 1.25rem */
-h2 { font-size: clamp(1.125rem, 4vw, 1.75rem); } /* Scaled down from original */
-h3 { font-size: clamp(1rem, 3.5vw, 1.5rem); } /* Slightly smaller than h2 */
-h4 { font-size: clamp(0.875rem, 3vw, 1.25rem); } /* Consistent scale */
-h5 { font-size: clamp(0.75rem, 2.5vw, 1.125rem); } /* Balanced size */
-h6 { font-size: clamp(0.6875rem, 2vw, 1rem); } /* Smallest heading */
+#fitback-recommendation h1 { font-size: clamp(1.25rem, 5vw, 1.5rem); }  /* Large: 2rem, Small: 1.25rem */
+#fitback-recommendation h2 { font-size: clamp(1.125rem, 4vw, 1.75rem); } /* Scaled down from original */
+#fitback-recommendation h3 { font-size: clamp(1rem, 3.5vw, 1.5rem); } /* Slightly smaller than h2 */
+#fitback-recommendation h4 { font-size: clamp(0.875rem, 3vw, 1.25rem); } /* Consistent scale */
+#fitback-recommendation h5 { font-size: clamp(0.75rem, 2.5vw, 1.125rem); } /* Balanced size */
+#fitback-recommendation h6 { font-size: clamp(0.6875rem, 2vw, 1rem); } /* Smallest heading */
 
 /* Paragraph styles */
-p {
+#fitback-recommendation p {
   font-size: clamp(1rem, 1.2vw, 1.2rem); /* Responsive scaling */
   font-weight: var(--font-weight-normal);
   line-height: 1.2;
@@ -55,34 +55,44 @@ p {
 
 /*buttons*/
 
-button{
-  border-radius: 5rem;
-  width: 100%;
+
+#fitback-recommendation .btn-primary p{
+  margin: 0;
 }
 
-.btn-primary{
+#fitback-recommendation .btn-secondary p{
+  margin: 0;
+}
+
+
+#fitback-recommendation .btn-primary{
+  border-radius: 5rem;
+  width: 100%;
+  height: 2rem;
   background-color: var(--button-colour-primary);
 }
-.btn-primary__text{
+#fitback-recommendation .btn-primary__text{
   color: #fff;
   font-weight: bold;
   font-size: 0.8rem;
   text-align: center;
 }
 
-.btn-secondary {
+#fitback-recommendation .btn-secondary {
   background-color: var(--button-colour-secondary);
   height: 1.5rem;
+  border-radius: 5rem;
+  width: 100%;
 }
 
-.btn-secondary__text {
+#fitback-recommendation .btn-secondary__text {
   font-size: 0.8rem;
   margin: 0;
   text-align: center;
 }
 
 /*define global styling*/
-body {
+#fitback-recommendation body {
   font-family: var(--font-primary);
   font-size: var(--font-size-base);
   font-weight: var(--font-weight-normal);
@@ -90,12 +100,12 @@ body {
   color: #000; /* Default text color */
 }
 
-
+/*helper*/
 
 
 
 /*dark overlay of entire screen*/
-.modal-overlay {
+#fitback-recommendation .modal-overlay {
     position: fixed;
     top: 0;
     left: 0;
@@ -109,36 +119,33 @@ body {
     align-items: center;
     z-index: 9999;
 }
-  
-.modal-overlay.hidden {
-display: none;
-}
 
 
-
-
-.footer-logo {
+#fitback-recommendation .footer-logo {
   position: relative;
   height: var(--modal-content-padding);
-  top: calc(var(--modal-content-padding)*-1);
+  top: 30px;
 }
 
+::-webkit-scrollbar {
+  display: none; /* Hide scrollbar (not recommended for usability) */
+  width: auto; /* Reset width */
+  height: auto; /* Reset height */
+}
 
 .modal-content {
   background: white;
-  min-width: 350px;
-  min-height: 500px;
-  width: 24rem; /* Fixed width */
-  height: 40rem; /* Fixed height */
+  width: 30rem; /* Fixed width */
   max-width: 90vw; /* Prevents overflow */
   max-height: 90vh; /* Prevents overflow */
-  padding: 2rem;
+  padding: 30px;
   border-radius: 1rem;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  overflow-y: scroll;
 }
 
 /*ONBOARDING */
@@ -202,7 +209,7 @@ display: none;
   pointer-events: none;
   color: gray;
   left: 3rem;
-  top: 0.1rem;
+  top: 0.4rem;
 
 }
 
@@ -216,8 +223,20 @@ display: none;
   gap: 1rem;
 }
 
+.onboard-camera-prompt img {
+  width: 100%;
+}
+
 .hidden {
   display: none;
+}
+
+.onboard-camera-position img {
+  width: 100%;
+}
+
+.onboard-camera-guidelines img {
+  width: 100%;
 }
 
 
@@ -225,16 +244,20 @@ display: none;
 /*Recommendation contents*/
 .recommendation-content {
   width: 100%;
-  height: inherit;
+  height: 100%;
+  overflow-y: scroll;
+  overflow-x: hidden;
 }
 
+
+
 /*nav*/
-.modal-tabs {
+#fitback-recommendation .modal-tabs {
   display: flex;
   width: 100%;
 }
 
-.modal-tabs button {
+#fitback-recommendation .modal-tabs button {
   width: 50%;
   border-radius: 0;
   background: none;
@@ -242,7 +265,7 @@ display: none;
   border-bottom: 1px solid black;
 }
 
-.modal-tabs .tab-button {
+#fitback-recommendation .modal-tabs .tab-button {
   flex-grow: 1;
   background: none;
   border: none;
@@ -251,10 +274,148 @@ display: none;
   padding: 10px;
 }
 
-.modal-tabs .tab-button.active {
+#fitback-recommendation .modal-tabs .tab-button.active {
   color: #000;
   border-bottom: 3px solid #000;
 }
 
 
+
+
+
 /*carousel*/
+#fitback-recommendation .glider{
+  text-align: center;
+  margin: 1rem 0 1rem 0;
+}
+
+.slide {
+  width: 100%;
+}
+
+#fitback-recommendation .active-slide {
+  background-color: black;
+  font-weight: bold;
+  border-radius: 4rem;
+}
+
+#fitback-recommendation .active-slide p {
+  color: white;
+  font-weight: bold;
+  text-align: center;
+}
+
+#fitback-recommendation .glider-contain .glider-prev {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none; /* customize styling as needed */
+  border: none;
+  font-size: 2rem; /* adjust size if necessary */
+  cursor: pointer;
+  left: -25%;
+  color: white;
+} 
+
+#fitback-recommendation .glider-contain .glider-next {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none; /* customize styling as needed */
+  border: none;
+  font-size: 2rem; /* adjust size if necessary */
+  cursor: pointer;
+  right: -25%;
+  color: white;
+} 
+
+
+
+
+
+#fitback-recommendation .screen-fit-container{
+  display: flex;
+}
+
+#fitback-recommendation .pose-figure {
+  flex: 1;
+}
+
+#fitback-recommendation .sizing-cards-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow-y: scroll; /* ✅ Enable vertical scrolling */
+
+}
+#fitback-recommendation .sizing-card {
+  border: 0.15rem solid black;
+  text-align: center;
+  width: 100%;
+  padding: 0.2rem;
+  border-radius: 2rem;
+
+
+  
+}
+
+#fitback-recommendation .sizing-card p,h3, h4,h5 {
+  text-align: center;
+  margin: 0;
+
+}
+
+
+
+
+
+/*screen-profile*/
+#fitback-recommendation .profile-pose-img-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+}
+
+#fitback-recommendation .profile-pose-img-container svg{
+  width: 100%;
+}
+
+#fitback-recommendation .measurement-container{
+  display: flex;
+  justify-content: space-between;
+}
+
+#fitback-recommendation .measurement-container .measurement-card-container{
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+#fitback-recommendation .measurement-card {
+  border: 0.1rem solid black;
+  border-radius: 4rem;
+  display: flex;
+  width: auto;
+  justify-content: center;
+  align-items: center;
+  padding: 0.5rem;
+
+}
+
+#fitback-recommendation .measurement-card p{
+  margin: 0;
+  font-size: 0.8rem;
+
+}
+ 
+#fitback-recommendation .measurement-card:hover {
+  background-color: lightgray;
+}
+
+.highlight {
+  stroke: black  !important;
+  stroke-width: 2  !important;
+}
+
