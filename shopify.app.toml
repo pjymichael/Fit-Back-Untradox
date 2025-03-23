@@ -3,7 +3,7 @@
 client_id = "6d959e3b05f5a0b80990424ba2b0a14d"
 name = "Fitback"
 handle = "fitback-5"
-application_url = "https://veterinary-periodically-glow-nobody.trycloudflare.com"
+application_url = "https://adds-ict-rrp-officially.trycloudflare.com"
 embedded = true
 
 [build]
@@ -17,9 +17,9 @@ scopes = "read_products,write_products"
 
 [auth]
 redirect_urls = [
-  "https://veterinary-periodically-glow-nobody.trycloudflare.com/auth/callback",
-  "https://veterinary-periodically-glow-nobody.trycloudflare.com/auth/shopify/callback",
-  "https://veterinary-periodically-glow-nobody.trycloudflare.com/api/auth/callback"
+  "https://adds-ict-rrp-officially.trycloudflare.com/auth/callback",
+  "https://adds-ict-rrp-officially.trycloudflare.com/auth/shopify/callback",
+  "https://adds-ict-rrp-officially.trycloudflare.com/api/auth/callback"
 ]
 
 [webhooks]
