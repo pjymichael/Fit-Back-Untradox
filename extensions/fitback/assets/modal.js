@@ -23,6 +23,18 @@ document.addEventListener("DOMContentLoaded", () => {
   // -- NEW: Append overlay to <body> so it's not nested in a limiting container --
   document.body.appendChild(overlay);
 
+  const scriptTag = document.getElementById("sizing-data");
+
+  if (scriptTag) {
+    try {
+      const sizingData = JSON.parse(scriptTag.textContent);
+
+      console.log(sizingData);
+    } catch (error) {
+      console.error("Failed to parse sizing JSON", error);
+    }
+  }
+
   //dictionary storage of user information
   let userInfo = {
     gender,

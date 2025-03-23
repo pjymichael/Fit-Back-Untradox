@@ -347,6 +347,11 @@
 
     <button id="open-modal" class="open-modal-button">Find My Size</button>
 </body>
+{% if product.metafields.custom.sizing_table %}
+  <script id="sizing-data" type="application/json">
+    {{ product.metafields.custom.sizing_table.value | json }}
+  </script>
+{% endif %}
 <script src="{{ 'glider.min.js' | asset_url }}" defer></script>
 <script src="{{ 'modal.js' | asset_url }}" defer></script>
 
