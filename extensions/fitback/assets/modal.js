@@ -17,23 +17,39 @@ let torso = 0;
 let thigh = 0;
 
 document.addEventListener("DOMContentLoaded", () => {
-/*-------------------SETUPS------------------*/
+/*--------------------------------------------------------------SETUPS--------------------------------------------------------------------------*/
   // 1. Grab references to all your elements
   const overlay = document.getElementById("modal-overlay");
   // -- NEW: Append overlay to <body> so it's not nested in a limiting container --
   document.body.appendChild(overlay);
 
-  const scriptTag = document.getElementById("sizing-data");
-
-  if (scriptTag) {
+  const productInfo = document.getElementById("sizing-data");
+  //sizes: keys of the sizes object (eg s,m,l etc...) (used to generate carousel)
+  let sizes;
+  //categories: category of sizing (chest, shoulder, leg, waist etc...) (use to generate recommender card, with )
+  let categories;
+  //ensure product info exist
+  if (productInfo) {
     try {
+      let scriptTag = document.getElementById("sizing-data");
       const sizingData = JSON.parse(scriptTag.textContent);
-
+      const sizeObj = sizingData.sizes
       console.log(sizingData);
+      sizes = Object.keys(sizingData.sizes);
+      categories = Object.keys(sizeObj[sizes[0]]); // ["torso", "shoulder", "chest", "sleeve"]
+
+      console.log("Sizes:", sizes);
+      console.log("Categories:", categories);
+      
     } catch (error) {
       console.error("Failed to parse sizing JSON", error);
     }
   }
+
+  //now we dissect into types of size (s,m,l etc...) and size categories (chest, shoulder, sleeve etc...)
+
+
+
 
   //dictionary storage of user information
   let userInfo = {
@@ -60,6 +76,49 @@ document.addEventListener("DOMContentLoaded", () => {
   const hideElement = (ele) => {
     ele.classList.add("hidden");
     ele.classList.remove("visible");
+  }
+
+  const constructRecommenderCard = (productSizeCategory) => {
+    //product size category will be an array of categories (e.g) [chest, torso, shoulder]
+    //loop through and create a sizing card like the following (with h5 using category, set p text content as NA first )
+    // <div class="sizing-card">
+    // <h5>Shoulder</h5>
+    // <p>Just Right</p>
+    // </div>
+    //construct the sizing card with the title based on category
+    //and then append in to <div id="sizing-cards-container" class="sizing-cards-container">
+    //afterwards, any information update will be handled by another function
+    console.log("running construct recommender card function")
+    const container = document.getElementById("sizing-cards-container");
+
+    // Make sure the container exists
+    if (!container) {
+      console.warn("sizing-cards-container not found");
+      return;
+    }
+
+    // Clear previous cards (optional, depending on behavior you want)
+    container.innerHTML = "";
+
+    productSizeCategory.forEach((category) => {
+      // Create the card wrapper
+      const card = document.createElement("div");
+      card.classList.add("sizing-card");
+      card.setAttribute("data-category", category.toLowerCase());
+
+      // Create the title element
+      const title = document.createElement("h5");
+      title.textContent = category.charAt(0).toUpperCase() + category.slice(1); // Capitalize
+
+      // Create the placeholder text
+      const valueText = document.createElement("p");
+      valueText.textContent = "N/A"; // Placeholder to update later
+
+      // Append title + text to card, then card to container
+      card.appendChild(title);
+      card.appendChild(valueText);
+      container.appendChild(card);
+    });
   }
 
   const saveProfileMeasurementDetails = (measurementInputArray, measurementForm) => {
@@ -157,8 +216,8 @@ document.addEventListener("DOMContentLoaded", () => {
       // mainContent.classList.add("hidden");
     }
   });
-
-/*-------------------ONBOARDING------------------*/
+/*-------------------------------------------------------------------- -------------------------------------------------------------------*/
+/*--------------------------------------------------------------------ONBOARDING-------------------------------------------------------------------*/
 
   //Grab reference to screenIds
   const onboardWelcome = document.getElementById("onboard-welcome");
@@ -255,8 +314,9 @@ document.addEventListener("DOMContentLoaded", () => {
   ]
   //Grab References to pose figure
   //ask tristan and lucas
+/*---------------------------------------------------------------------------------------------------------------------------------------*/
 
-/*----------------Recommendation-------------------*/
+/*--------------------------------------------------------------------RECOMMENDATIONS -------------------------------------------------------------------*/
   const sizingCardContainer = document.getElementById("sizing-cards-container");
   const screenFit = document.getElementById("screen-fit");
   const screenProfile = document.getElementById("screen-profile");
@@ -307,7 +367,7 @@ document.addEventListener("DOMContentLoaded", () => {
     legInput,
     thighInput
   ]
-  
+  //////////////////////////NAVIGATIONS//////////////////////////
   recommendationScreenBtn.forEach((btn, index) => {
     switch(btn) {
       case tabFitBtn:
@@ -369,6 +429,96 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
   })
+  ////////////////////////////////////////////////////
+
+  //////////////////////////Recommender section//////////////////////////
+  
+  //initially, run the recommender card constructor function 
+  constructRecommenderCard(categories);
+  //Interactivity of recommender card and svg
+  const cards = document.querySelectorAll(".sizing-card");
+  cards.forEach((card) => {
+    const category = card.getAttribute("data-category");
+    const targetSvg = document.getElementById(`${category}-recommendation-svg`);
+
+    if (targetSvg) {
+      card.addEventListener("mouseover", () => {
+        const shapeElements = targetSvg.querySelectorAll('path, ellipse, line, circle, polygon, rect');
+        shapeElements.forEach(shape => shape.classList.add('fill-black'));
+      });
+
+      card.addEventListener("mouseout", () => {
+        const shapeElements = targetSvg.querySelectorAll('path, ellipse, line, circle, polygon, rect');
+        shapeElements.forEach(shape => shape.classList.remove('fill-black'));
+      });
+    }
+
+    //special Cases (sleeve, leg)
+    //Special case:"sleeve" = forearm + bicep + shoulder
+    if (category === "sleeve") {
+      const relatedIds = [
+        "forearm-recommendation-svg",
+        "bicep-recommendation-svg",
+        "shoulder-recommendation-svg"
+      ];
+  
+      card.addEventListener("mouseover", () => {
+        relatedIds.forEach(id => {
+          const part = document.getElementById(id);
+          if (part) {
+            const shapes = part.querySelectorAll('path, ellipse, line, circle, polygon, rect');
+            shapes.forEach(shape => shape.classList.add('fill-black'));
+          }
+        });
+      });
+  
+      card.addEventListener("mouseout", () => {
+        relatedIds.forEach(id => {
+          const part = document.getElementById(id);
+          if (part) {
+            const shapes = part.querySelectorAll('path, ellipse, line, circle, polygon, rect');
+            shapes.forEach(shape => shape.classList.remove('fill-black'));
+          }
+        });
+      });
+    }
+  
+    //Special case: "leg" = thigh + calf
+    if (category === "leg") {
+      const relatedIds = [
+        "thigh-recommendation-svg",
+        "calf-recommendation-svg"
+      ];
+  
+      card.addEventListener("mouseover", () => {
+        relatedIds.forEach(id => {
+          const part = document.getElementById(id);
+          if (part) {
+            const shapes = part.querySelectorAll('path, ellipse, line, circle, polygon, rect');
+            shapes.forEach(shape => shape.classList.add('fill-black'));
+          }
+        });
+      });
+  
+      card.addEventListener("mouseout", () => {
+        relatedIds.forEach(id => {
+          const part = document.getElementById(id);
+          if (part) {
+            const shapes = part.querySelectorAll('path, ellipse, line, circle, polygon, rect');
+            shapes.forEach(shape => shape.classList.remove('fill-black'));
+          }
+        });
+      });
+    }
+  });
+
+  //update the recommendation card values (loose, justright, tight) based on user data and size chosen
+  /*updateRecommmenderCardValues(userData)
+
+  
+  */
+
+
 
   //My Profile
   //Interactivity of svg and measurement card in myprofile tab
@@ -392,7 +542,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   });
-  //
+
 
   let gliderElement = document.querySelector(".glider");
   let slides = document.querySelectorAll(".slide");

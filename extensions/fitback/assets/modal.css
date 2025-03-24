@@ -355,9 +355,10 @@
   width: 100%;
   padding: 0.2rem;
   border-radius: 2rem;
+}
 
-
-  
+#fitback-recommendation .sizing-card:hover {
+  background-color: lightgray;
 }
 
 #fitback-recommendation .sizing-card p,h3, h4,h5 {
@@ -418,4 +419,10 @@
   stroke: black  !important;
   stroke-width: 2  !important;
 }
+
+.fill-black {
+  fill: black !important;
+}
+
+
 
