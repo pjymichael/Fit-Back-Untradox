@@ -3,7 +3,7 @@
 client_id = "6d959e3b05f5a0b80990424ba2b0a14d"
 name = "Fitback"
 handle = "fitback-5"
-application_url = "https://indicator-mo-accomplished-precious.trycloudflare.com"
+application_url = "https://www-filtering-conflicts-wishes.trycloudflare.com"
 embedded = true
 
 [build]
@@ -17,9 +17,9 @@ scopes = "read_products,write_products"
 
 [auth]
 redirect_urls = [
-  "https://indicator-mo-accomplished-precious.trycloudflare.com/auth/callback",
-  "https://indicator-mo-accomplished-precious.trycloudflare.com/auth/shopify/callback",
-  "https://indicator-mo-accomplished-precious.trycloudflare.com/api/auth/callback"
+  "https://www-filtering-conflicts-wishes.trycloudflare.com/auth/callback",
+  "https://www-filtering-conflicts-wishes.trycloudflare.com/auth/shopify/callback",
+  "https://www-filtering-conflicts-wishes.trycloudflare.com/api/auth/callback"
 ]
 
 [webhooks]

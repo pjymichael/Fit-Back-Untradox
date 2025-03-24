@@ -53,18 +53,27 @@ document.addEventListener("DOMContentLoaded", () => {
 
   //dictionary storage of user information
   let userInfo = {
-    gender,
-    height,
-    weight,
-    age,
-    shoulder,
-    hip,
-    arm,
-    leg,
-    chest,
-    waist,
-    torso,
-    thigh,
+    gender: null,
+    height: null,
+    weight: null,
+    age: null,
+    shoulder: null,
+    hip: null,
+    arm: null,
+    leg: null,
+    chest: null,
+    waist: null,
+    torso: null,
+    thigh: null
+  };
+  
+  //takes in object, can handle partial objects
+  function updateUserInfo(updates) {
+    Object.keys(updates).forEach((key) => {
+      if (userInfo.hasOwnProperty(key)) {
+        userInfo[key] = updates[key];
+      }
+    });
   }
 
   //helper functions
@@ -121,7 +130,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  const saveProfileMeasurementDetails = (measurementInputArray, measurementForm) => {
+  const saveProfileMeasurementDetails = (measurementInputArray) => {
     if (!Array.isArray(measurementInputArray)) {
       console.error("Invalid measurementInputArray provided. Expected an array.");
       return;
@@ -129,72 +138,63 @@ document.addEventListener("DOMContentLoaded", () => {
   
     console.log("Saving Profile Measurements...");
   
+    const updates = {};
+  
     measurementInputArray.forEach((inputEle) => {
       try {
-        // Check if input element exists and has a name attribute
         if (!inputEle || !inputEle.name) {
           throw new Error("Input element missing or has no name attribute");
         }
   
-        // check if input is empty
         const value = inputEle.value;
         if (value === "" || value === undefined) {
           console.warn(`Empty value for input with name "${inputEle.name}"`);
-          return; // Skip this input
+          return;
         }
-
-        // Update the userInfo dictionary based on the input name
-        switch (inputEle.name) {
-          case "shoulder":
-            userInfo.shoulder = inputEle.value;
-            break;
-          case "chest":
-            userInfo.chest = inputEle.value;
-            break;
-          case "hip":
-            userInfo.hip = inputEle.value;
-            break;
-          case "waist":
-            userInfo.waist = inputEle.value;
-            break;
-          case "torso":
-            userInfo.torso = inputEle.value;
-            break;
-          case "arm":
-            userInfo.arm = inputEle.value;
-            break;
-          case "leg":
-            userInfo.leg = inputEle.value;
-            break;
-          case "thigh":
-            userInfo.thigh = inputEle.value;
-            break;
-          default:
-            console.error(`Unknown input name: ${inputEle.name}`);
-        }
+  
+        updates[inputEle.name] = value;
       } catch (error) {
         console.error("Error processing input element:", error, inputEle);
       }
-
     });
-    console.log("Profile Measurements saved: ", userDetailArray);
-
+  
+    updateUserInfo(updates);
+    console.log("Profile Measurements saved:", userInfo);
   };
+  
 
   const saveOnboardingUserDetails = (userDetailArray, form) => {
-    // Check if the form is valid
-    if (!form.checkValidity()) {
-      // This will show native validation messages
-      form.reportValidity();
-      console.error("Form is invalid. Please correct the errors.");
-      return; // Stop processing if the form is invalid
+    if (!Array.isArray(userDetailArray)) {
+      console.error("Invalid userDetailArray provided. Expected an array.");
+      return;
     }
-    
-    console.log("User details saved:");
-    userDetailArray.forEach((ele) => {
-      console.log(ele.value);
+  
+    console.log("Saving Onboarding User Details...");
+  
+    const updates = {};
+  
+    userDetailArray.forEach((inputEle) => {
+      try {
+        if (!inputEle || !inputEle.name) {
+          throw new Error("Input element missing or has no name attribute");
+        }
+  
+        const value = inputEle.value;
+        if (value === "" || value === undefined) {
+          console.warn(`Empty value for input with name "${inputEle.name}"`);
+          return;
+        }
+  
+        updates[inputEle.name] = value;
+      } catch (error) {
+        console.error("Error processing onboarding input element:", error, inputEle);
+      }
     });
+  
+    updateUserInfo(updates);
+    console.log("Onboarding Details saved:", userInfo);
   };
+  
 
   const mainContent = document.getElementById("modal-content");
   const openButton = document.getElementById("open-modal");
