@@ -74,6 +74,28 @@ document.addEventListener("DOMContentLoaded", () => {
         userInfo[key] = updates[key];
       }
     });
+
+  }
+
+  function updateMeasurementCards() {
+    const cards = document.querySelectorAll(".measurement-card");
+  
+    cards.forEach((card) => {
+      const cardId = card.id; // e.g. "arm-measurement-card"
+      const parts = cardId.split("-"); // ["arm", "measurement", "card"]
+      const key = parts[0]; // "arm"
+  
+      if (userInfo.hasOwnProperty(key)) {
+        const value = userInfo[key];
+  
+        // Find the <p> element that holds the value (assume it's the second <p>)
+        const valueElement = card.querySelectorAll("p")[1];
+  
+        if (valueElement) {
+          valueElement.textContent = value ? `${value}cm` : "N/A";
+        }
+      }
+    });
   }
 
   //helper functions
@@ -160,6 +182,8 @@ document.addEventListener("DOMContentLoaded", () => {
   
     updateUserInfo(updates);
     console.log("Profile Measurements saved:", userInfo);
+        
+    updateMeasurementCards();
   };
   
 
