@@ -82,6 +82,26 @@ document.addEventListener("DOMContentLoaded", () => {
     thigh,
   };
 
+  setupModalOpenClose(openButton, overlay);
+
+  const onboardScreensArray = [
+    onboardWelcome,
+    onboardUserInput,
+    onboardCameraPrompt,
+    onboardCameraGuidelines,
+    onboardCameraPosition,
+    recommendationContent,
+  ];
+
+  //store as array
+  const onboardNextBtnsArray = [
+    onboardWelcomeNext,
+    onboardUserInputNext,
+    onboardCameraPromptNext,
+    onboardCameraGuidelinesNext,
+    onboardCameraPositionNext,
+  ];
+
   const saveProfileMeasurementDetails = (
     measurementInputArray,
     measurementForm,
@@ -159,89 +179,14 @@ document.addEventListener("DOMContentLoaded", () => {
       console.log(ele.value);
     });
   };
-
-  // 4. Event handlers: open/close the modal
-  openButton.addEventListener("click", () => {
-    overlay.classList.remove("hidden");
-    overlay.classList.add("visible");
-    // mainContent.classList.remove("hidden");
-    // mainContent.classList.add("visible");
-  });
-
-  // Close modal if user clicks *outside* modal-content
-  overlay.addEventListener("click", (event) => {
-    if (event.target === overlay) {
-      overlay.classList.remove("visible");
-      overlay.classList.add("hidden");
-      // mainContent.classList.remove("visible");
-      // mainContent.classList.add("hidden");
-    }
-  });
-
-  //store as array
-  const onboardScreensArray = [
-    onboardWelcome,
-    onboardUserInput,
-    onboardCameraPrompt,
-    onboardCameraGuidelines,
-    onboardCameraPosition,
-    recommendationContent,
-  ];
-
-  //store as array
-  const onboardNextBtnsArray = [
-    onboardWelcomeNext,
-    onboardUserInputNext,
-    onboardCameraPromptNext,
-    onboardCameraGuidelinesNext,
-    onboardCameraPositionNext,
-  ];
-  //EVENTS
-
-  //onboarding screen navigating
-  //setup listeners to hide and show onboard screens
-  onboardNextBtnsArray.forEach((btn, index) => {
-    if (btn == onboardCameraPositionNext) {
-      btn.addEventListener("click", () => {
-        onboardScreensArray.forEach((screen) => hideElement(screen));
-      });
-    }
-
-    if (btn) {
-      // Ensure button exists
-      if (btn == onboardUserInputNext) {
-        // special rule for form validation
-        btn.addEventListener("click", () => {
-          // Check if the form is valid
-          if (userDetailForm.checkValidity()) {
-            saveOnboardingUserDetails(userDetailArray, userDetailForm);
-            onboardScreensArray.forEach((screen) => hideElement(screen));
-            // Show next screen
-            showElement(onboardScreensArray[index + 1]);
-          } else {
-            // Trigger native validation messages
-            userDetailForm.reportValidity();
-            console.error("Form is invalid. Please correct the errors.");
-          }
-        });
-      } else {
-        btn.addEventListener("click", () => {
-          // Hide all screens
-          onboardScreensArray.forEach((screen) => hideElement(screen));
-
-          // Show next screen
-          showElement(onboardScreensArray[index + 1]);
-        });
-      }
-    }
-
-    if (btn == onboardUserInputNext) {
-    }
-  });
-
   const userDetailArray = [genderInput, heightInput, weightInput, ageInput];
-  //Grab References to pose figure
-  //ask tristan and lucas
+
+  setupOnboardingNavigation(
+    onboardScreensArray,
+    onboardNextBtnsArray,
+    userDetailForm,
+    userDetailArray,
+  );
 
   const recommendationScreenArray = [
     screenFit,
@@ -257,6 +202,17 @@ document.addEventListener("DOMContentLoaded", () => {
     profileMeasurementManualConfirmChangeBtn,
   ];
 
+  // Package the extra elements into an object for clarity
+  const extraElements = {
+    tabFitBtn,
+    tabProfileBtn,
+    profileEditMeasurementBtn,
+    profileMeasurementManualConfirmChangeBtn,
+    screenFit,
+    screenProfile,
+    screenProfileMeasurementDetails,
+    screenProfileMeasurementEdit,
+  };
   const measurementInputArray = [
     shoulderInput,
     chestInput,
@@ -268,66 +224,121 @@ document.addEventListener("DOMContentLoaded", () => {
     thighInput,
   ];
 
-  recommendationScreenBtn.forEach((btn, index) => {
-    switch (btn) {
-      case tabFitBtn:
-        btn.addEventListener("click", () => {
-          showElement(screenFit);
-          hideElement(screenProfile);
-          hideElement(screenProfileMeasurementDetails);
-          hideElement(screenProfileMeasurementEdit);
+  setupRecommendationNavigation(
+    recommendationScreenBtn,
+    extraElements,
+    userMeasurementForm,
+    measurementInputArray,
+    userInfo, // only to pass values to saveProfileMeasurementDetails
+    userDetailArray, // only to pass values to saveProfileMeasurementDetails
+  );
 
-          tabFitBtn.classList.add("active");
-          tabProfileBtn.classList.remove("active");
-        });
+  //EVENTS
 
-        break;
+  //onboarding screen navigating
+  //setup listeners to hide and show onboard screens
+  // onboardNextBtnsArray.forEach((btn, index) => {
+  //   if (btn == onboardCameraPositionNext) {
+  //     btn.addEventListener("click", () => {
+  //       onboardScreensArray.forEach((screen) => hideElement(screen));
+  //     });
+  //   }
 
-      case tabProfileBtn:
-        btn.addEventListener("click", () => {
-          showElement(screenProfile);
-          showElement(screenProfileMeasurementDetails);
-          hideElement(screenFit);
-          hideElement(screenProfileMeasurementEdit);
+  //   if (btn) {
+  //     // Ensure button exists
+  //     if (btn == onboardUserInputNext) {
+  //       // special rule for form validation
+  //       btn.addEventListener("click", () => {
+  //         // Check if the form is valid
+  //         if (userDetailForm.checkValidity()) {
+  //           saveOnboardingUserDetails(userDetailArray, userDetailForm);
+  //           onboardScreensArray.forEach((screen) => hideElement(screen));
+  //           // Show next screen
+  //           showElement(onboardScreensArray[index + 1]);
+  //         } else {
+  //           // Trigger native validation messages
+  //           userDetailForm.reportValidity();
+  //           console.error("Form is invalid. Please correct the errors.");
+  //         }
+  //       });
+  //     } else {
+  //       btn.addEventListener("click", () => {
+  //         // Hide all screens
+  //         onboardScreensArray.forEach((screen) => hideElement(screen));
 
-          tabProfileBtn.classList.add("active");
-          tabFitBtn.classList.remove("active");
-        });
+  //         // Show next screen
+  //         showElement(onboardScreensArray[index + 1]);
+  //       });
+  //     }
+  //   }
 
-        break;
+  //   if (btn == onboardUserInputNext) {
+  //   }
+  // });
 
-      case profileEditMeasurementBtn:
-        btn.addEventListener("click", () => {
-          showElement(screenProfile);
-          hideElement(screenFit);
-          hideElement(screenProfileMeasurementDetails);
-          showElement(screenProfileMeasurementEdit);
-        });
-        break;
+  // //Grab References to pose figure
+  // //ask tristan and lucas
 
-      case profileMeasurementManualConfirmChangeBtn:
-        btn.addEventListener("click", () => {
-          // Check if the form is valid
-          // Check if the form is valid
-          if (userMeasurementForm.checkValidity()) {
-            saveProfileMeasurementDetails(
-              measurementInputArray,
-              userMeasurementForm,
-            );
-            showElement(screenProfile);
-            showElement(screenProfileMeasurementDetails);
+  // recommendationScreenBtn.forEach((btn, index) => {
+  //   switch (btn) {
+  //     case tabFitBtn:
+  //       btn.addEventListener("click", () => {
+  //         showElement(screenFit);
+  //         hideElement(screenProfile);
+  //         hideElement(screenProfileMeasurementDetails);
+  //         hideElement(screenProfileMeasurementEdit);
 
-            hideElement(screenFit);
-            hideElement(screenProfileMeasurementEdit);
-          } else {
-            // Trigger native validation messages
-            userMeasurementForm.reportValidity();
-            console.error("Form is invalid. Please correct the errors.");
-          }
-        });
-        break;
-    }
-  });
+  //         tabFitBtn.classList.add("active");
+  //         tabProfileBtn.classList.remove("active");
+  //       });
+
+  //       break;
+
+  //     case tabProfileBtn:
+  //       btn.addEventListener("click", () => {
+  //         showElement(screenProfile);
+  //         showElement(screenProfileMeasurementDetails);
+  //         hideElement(screenFit);
+  //         hideElement(screenProfileMeasurementEdit);
+
+  //         tabProfileBtn.classList.add("active");
+  //         tabFitBtn.classList.remove("active");
+  //       });
+
+  //       break;
+
+  //     case profileEditMeasurementBtn:
+  //       btn.addEventListener("click", () => {
+  //         showElement(screenProfile);
+  //         hideElement(screenFit);
+  //         hideElement(screenProfileMeasurementDetails);
+  //         showElement(screenProfileMeasurementEdit);
+  //       });
+  //       break;
+
+  //     case profileMeasurementManualConfirmChangeBtn:
+  //       btn.addEventListener("click", () => {
+  //         // Check if the form is valid
+  //         // Check if the form is valid
+  //         if (userMeasurementForm.checkValidity()) {
+  //           saveProfileMeasurementDetails(
+  //             measurementInputArray,
+  //             userMeasurementForm,
+  //           );
+  //           showElement(screenProfile);
+  //           showElement(screenProfileMeasurementDetails);
+
+  //           hideElement(screenFit);
+  //           hideElement(screenProfileMeasurementEdit);
+  //         } else {
+  //           // Trigger native validation messages
+  //           userMeasurementForm.reportValidity();
+  //           console.error("Form is invalid. Please correct the errors.");
+  //         }
+  //       });
+  //       break;
+  //   }
+  // });
 
   //My Profile
   //Interactivity of svg and measurement card in myprofile tab
@@ -486,3 +497,172 @@ function initializeElements() {
     thighInput: document.getElementById("thigh-input"),
   };
 }
+
+function setupModalOpenClose(openButton, overlay) {
+  openButton.addEventListener("click", () => {
+    overlay.classList.remove("hidden");
+    overlay.classList.add("visible");
+    // mainContent.classList.remove("hidden");
+    // mainContent.classList.add("visible");
+  });
+
+  // Close modal if user clicks *outside* modal-content
+  overlay.addEventListener("click", (event) => {
+    if (event.target === overlay) {
+      overlay.classList.remove("visible");
+      overlay.classList.add("hidden");
+      // mainContent.classList.remove("visible");
+      // mainContent.classList.add("hidden");
+    }
+  });
+}
+
+function setupOnboardingNavigation(
+  screens,
+  nextBtns,
+  userDetailForm,
+  userDetailArray,
+) {
+  nextBtns.forEach((btn, index) => {
+    if (!btn) return;
+    // Special handling for the user input screen with validation
+    if (
+      btn === nextBtns[1]
+      // onboardUserInputNext
+    ) {
+      btn.addEventListener("click", () => {
+        if (userDetailForm.checkValidity()) {
+          saveOnboardingUserDetails(userDetailArray, userDetailForm);
+          screens.forEach((screen) => hideElement(screen));
+          showElement(screens[index + 1]);
+        } else {
+          userDetailForm.reportValidity();
+          console.error("Form is invalid. Please correct the errors.");
+        }
+      });
+    } else {
+      btn.addEventListener("click", () => {
+        screens.forEach((screen) => hideElement(screen));
+        showElement(screens[index + 1]);
+      });
+    }
+  });
+}
+
+function saveOnboardingUserDetails(userDetailArray, form) {
+  if (!form.checkValidity()) {
+    form.reportValidity();
+    console.error("Form is invalid. Please correct the errors.");
+    return;
+  }
+  console.log("User details saved:");
+  userDetailArray.forEach((ele) => {
+    console.log(ele.value);
+  });
+}
+
+function setupRecommendationNavigation(
+  buttons,
+  extraElements,
+  userMeasurementForm,
+  measurementInputArray,
+  userInfo,
+  userDetailArray,
+) {
+  const {
+    tabFitBtn,
+    tabProfileBtn,
+    profileEditMeasurementBtn,
+    profileMeasurementManualConfirmChangeBtn,
+    screenFit,
+    screenProfile,
+    screenProfileMeasurementDetails,
+    screenProfileMeasurementEdit,
+  } = extraElements;
+
+  buttons.forEach((btn) => {
+    if (btn === tabFitBtn) {
+      btn.addEventListener("click", () => {
+        showElement(screenFit);
+        hideElement(screenProfile);
+        hideElement(screenProfileMeasurementDetails);
+        hideElement(screenProfileMeasurementEdit);
+        tabFitBtn.classList.add("active");
+        tabProfileBtn.classList.remove("active");
+      });
+    } else if (btn === tabProfileBtn) {
+      btn.addEventListener("click", () => {
+        showElement(screenProfile);
+        showElement(screenProfileMeasurementDetails);
+        hideElement(screenFit);
+        hideElement(screenProfileMeasurementEdit);
+        tabProfileBtn.classList.add("active");
+        tabFitBtn.classList.remove("active");
+      });
+    } else if (btn === profileEditMeasurementBtn) {
+      btn.addEventListener("click", () => {
+        showElement(screenProfile);
+        hideElement(screenFit);
+        hideElement(screenProfileMeasurementDetails);
+        showElement(screenProfileMeasurementEdit);
+      });
+    } else if (btn === profileMeasurementManualConfirmChangeBtn) {
+      btn.addEventListener("click", () => {
+        // Check if the form is valid before proceeding
+        if (userMeasurementForm.checkValidity()) {
+          saveProfileMeasurementDetails(
+            measurementInputArray,
+            userMeasurementForm,
+            userInfo,
+            userDetailArray,
+          );
+          showElement(screenProfile);
+          showElement(screenProfileMeasurementDetails);
+          hideElement(screenFit);
+          hideElement(screenProfileMeasurementEdit);
+        } else {
+          userMeasurementForm.reportValidity();
+          console.error("Form is invalid. Please correct the errors.");
+        }
+      });
+    }
+  });
+}
+
+const saveProfileMeasurementDetails = (
+  measurementInputArray,
+  measurementForm,
+  userInfo,
+  userDetailArray,
+) => {
+  if (!Array.isArray(measurementInputArray)) {
+    console.error("Invalid measurementInputArray provided. Expected an array.");
+    return;
+  }
+
+  console.log("Saving Profile Measurements...");
+
+  measurementInputArray.forEach((inputEle) => {
+    try {
+      if (!inputEle || !inputEle.name) {
+        throw new Error("Input element missing or has no name attribute");
+      }
+
+      const value = inputEle.value;
+      if (value === "" || value === undefined) {
+        console.warn(`Empty value for input with name "${inputEle.name}"`);
+        return;
+      }
+
+      // If the key exists in userInfo, assign the value.
+      if (inputEle.name in userInfo) {
+        userInfo[inputEle.name] = inputEle.value;
+      } else {
+        console.error(`Unknown input name: ${inputEle.name}`);
+      }
+    } catch (error) {
+      console.error("Error processing input element:", error, inputEle);
+    }
+  });
+  console.log("Profile Measurements saved: ", userDetailArray);
+};
