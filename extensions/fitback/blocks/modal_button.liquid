@@ -93,17 +93,25 @@
                 <!-- Screen 1: "My Fit" -->
                 <section id="screen-fit" class="tab-screen">
                     <div class="glider-contain">
-                        <div class="glider">
-                            <div class="slide"><p>XS</p></div>
-                            <div class="slide"><p>S</p></div>
-                            <div class="slide"><p>M</p></div>
-                            <div class="slide"><p>L</p></div>
-                        </div>
-                            
-                        <button aria-label="Previous" class="glider-prev"><</button>
-                        <button aria-label="Next" class="glider-next">></button>
-                        </div>
-
+                        <button role="button" aria-label="Previous Image" class="glider-prev">
+                            < 
+                        </button>
+                            <div class="glider">
+                                <div class="slide" data-slide="1" tabindex="0">
+                                    <h1>S</h1>
+                                </div>
+                                <div class="slide" data-slide="2" tabindex="0">
+                                    <h1>M</h1>
+                                </div>
+                                <div class="slide" data-slide="3" tabindex="0">
+                                    <h1>L</h1>
+                                </div>
+                            </div>
+                        <button role="button" aria-label="Next Image" class="glider-next">
+                            >
+                        </button>
+                        <div role="tablist" class="dots"></div>
+                    </div>
                     <div class="screen-fit-container">
                         <div id="sizing-cards-container" class="sizing-cards-container">
                             <div class="sizing-card">

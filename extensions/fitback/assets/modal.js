@@ -16,6 +16,9 @@ let waist = 0;
 let torso = 0;
 let thigh = 0;
 
+let currentSize;
+let sizingData ;
+
 document.addEventListener("DOMContentLoaded", () => {
 /*--------------------------------------------------------------SETUPS--------------------------------------------------------------------------*/
   // 1. Grab references to all your elements
@@ -32,7 +35,7 @@ document.addEventListener("DOMContentLoaded", () => {
   if (productInfo) {
     try {
       let scriptTag = document.getElementById("sizing-data");
-      const sizingData = JSON.parse(scriptTag.textContent);
+      sizingData = JSON.parse(scriptTag.textContent);
       const sizeObj = sizingData.sizes
       console.log(sizingData);
       sizes = Object.keys(sizingData.sizes);
@@ -47,7 +50,6 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   //now we dissect into types of size (s,m,l etc...) and size categories (chest, shoulder, sleeve etc...)
-
 
 
 
@@ -98,7 +100,109 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  //helper functions
+  //////////////////RECOMMENDER CAROUSEL PORTION///////////////////////////////
+
+  // if (sizes && sizes.length > 0) {
+  //   const gliderElement = document.querySelector('.glider');
+  //   gliderElement.innerHTML = ""; // Clear any existing slides
+
+  //   sizes.forEach((size, index) => {
+  //     const slide = document.createElement('div');
+  //     slide.classList.add('slide');
+  //     slide.setAttribute('data-slide', index + 1);
+  //     slide.setAttribute('tabindex', '0');
+  //     slide.innerHTML = `<h1>${size.toUpperCase()}</h1>`;
+  //     gliderElement.appendChild(slide);
+  //   });
+  // }
+  // var glider = new Glider(document.querySelector('.glider'), {
+  //   slidesToShow: 1,
+  //   dots: '.dots',
+  //   draggable: true,
+  //   scrollLock: true,
+  //   rewind: true,
+  //   arrows: {
+  //     prev: '.glider-prev',
+  //     next: '.glider-next'
+  //   }
+  // });
+
+  // // console.log(glider)
+  // var numberOfSliders = document.querySelectorAll('.glider-slide').length
+
+  // function getPreviousSlide(currentSlide) {
+  //   if (currentSlide === 1) {
+  //     return numberOfSliders;
+  //   } else {
+  //     return currentSlide - 1;
+  //   }
+  // }
+
+  // function goToPreviousSlide(currentSlide) {
+  //     var previousSlide = getPreviousSlide(currentSlide);
+  //     var imageContent = document.querySelector(`.glider-slide:nth-of-type(${previousSlide})`);
+  //     document.querySelector('#hidden-image').innerHTML = imageContent.innerHTML;
+  // }
+
+  // function getNextSlide(currentSlide) {
+  //   if (currentSlide === numberOfSliders) {
+  //     return 1;
+  //   } else {
+  //     return currentSlide + 1;
+  //   }
+  // }
+
+  // function goToNextSlide(currentSlide) {
+  //     var previousSlide = getNextSlide(currentSlide);
+  //     var imageContent = document.querySelector(`.glider-slide:nth-of-type(${previousSlide})`);
+  //     document.querySelector('#hidden-image').innerHTML = imageContent.innerHTML;
+  // }
+
+  // document.querySelector('.glider-prev').addEventListener("click", function() {
+  //   var currentSlide = parseInt(document.querySelector('.glider-slide.active').getAttribute('data-slide'));
+  //   goToPreviousSlide(currentSlide)
+  // });
+
+  // document.querySelector('.glider-next').addEventListener("click", function() {
+  //   var currentSlide = parseInt(document.querySelector('.glider-slide.active').getAttribute('data-slide'));
+  //   goToNextSlide(currentSlide)
+  // });
+
+  // // Listen for the 'glider-slide-visible' event to know when the slide changes
+  // document.querySelector('.glider').addEventListener('glider-slide-visible', function(event) {
+  //   // event.detail.slide gives the index of the new active slide.
+  //   // This index might start at 0 or 1 based on Glider.js configuration.
+  //   console.log('New active slide is:', event.detail.slide);
+  //   // event.detail.slide is the new active slide's index (assuming 0-based)
+  //   let activeIndex = event.detail.slide;
+  //   let activeSize = sizes[activeIndex];  // For example, "M"
+
+  //   // Retrieve the size range data for the active size
+  //   let currentSizeData = sizingData.sizes[activeSize];
+
+  //   // For each category (e.g., chest, torso, etc.)
+  //   categories.forEach(category => {
+  //     // Get the user's measurement for this category (assumes userInfo is kept updated)
+  //     let userMeasurement = userInfo[category];
+      
+  //     // Get the measurement range for the current size and category
+  //     let range = currentSizeData[category];
+      
+  //     if (range && userMeasurement) {
+  //       // Evaluate the fit (e.g., "Too Small", "Just Right", or "Too Big")
+  //       let fitResult = evaluateFit(userMeasurement, range);
+        
+  //       // Update the corresponding recommendation card's text
+  //       // Assuming each recommender card has a data attribute matching the category in lowercase.
+  //       let card = document.querySelector(`.sizing-card[data-category="${category.toLowerCase()}"] p`);
+  //       if (card) {
+  //         card.textContent = fitResult;
+  //       }
+  //     }
+  //   });
+    
+  // });
+  //////////////////////////////////////////////////////////////////////////helper functions
   const showElement = (ele) => {
     ele.classList.add("visible");
     ele.classList.remove("hidden");
@@ -107,6 +211,18 @@ document.addEventListener("DOMContentLoaded", () => {
   const hideElement = (ele) => {
     ele.classList.add("hidden");
     ele.classList.remove("visible");
+  }
+
+  function evaluateFit(userMeasurement, range) {
+    // Ensure both values are numbers (if needed, parseFloat)
+    userMeasurement = parseFloat(userMeasurement);
+    if (userMeasurement < range.min) {
+      return "Too Small";
+    } else if (userMeasurement > range.max) {
+      return "Too Big";
+    } else {
+      return "Just Right";
+    }
   }
 
   const constructRecommenderCard = (productSizeCategory) => {
@@ -227,6 +343,7 @@ document.addEventListener("DOMContentLoaded", () => {
   openButton.addEventListener("click", () => {
     overlay.classList.remove("hidden");
     overlay.classList.add("visible");
+    
     // mainContent.classList.remove("hidden");
     // mainContent.classList.add("visible");
   });
@@ -314,6 +431,108 @@ document.addEventListener("DOMContentLoaded", () => {
           
           // Show next screen 
           showElement(onboardScreensArray[index + 1]);
+
+          
+          //init glider here
+          if (onboardScreensArray[index + 1] == onboardScreensArray[recommendationContent]) {
+            const gliderElement = document.querySelector('.glider');
+            gliderElement.innerHTML = ""; // Clear any existing slides
+        
+            sizes.forEach((size, index) => {
+              const slide = document.createElement('div');
+              slide.classList.add('slide');
+              slide.setAttribute('data-slide', index + 1);
+              slide.setAttribute('tabindex', '0');
+              slide.innerHTML = `<h1>${size.toUpperCase()}</h1>`;
+              gliderElement.appendChild(slide);
+            });
+          }
+          var glider = new Glider(document.querySelector('.glider'), {
+            slidesToShow: 1,
+            dots: '.dots',
+            draggable: true,
+            scrollLock: true,
+            rewind: true,
+            arrows: {
+              prev: '.glider-prev',
+              next: '.glider-next'
+            }
+          });
+        
+          // console.log(glider)
+          var numberOfSliders = document.querySelectorAll('.glider-slide').length
+
+          glider.refresh();
+        
+          function getPreviousSlide(currentSlide) {
+            if (currentSlide === 1) {
+              return numberOfSliders;
+            } else {
+              return currentSlide - 1;
+            }
+          }
+        
+          function goToPreviousSlide(currentSlide) {
+              var previousSlide = getPreviousSlide(currentSlide);
+              var imageContent = document.querySelector(`.glider-slide:nth-of-type(${previousSlide})`);
+          }
+        
+          function getNextSlide(currentSlide) {
+            if (currentSlide === numberOfSliders) {
+              return 1;
+            } else {
+              return currentSlide + 1;
+            }
+          }
+        
+          function goToNextSlide(currentSlide) {
+              var previousSlide = getNextSlide(currentSlide);
+              var imageContent = document.querySelector(`.glider-slide:nth-of-type(${previousSlide})`);
+          }
+        
+          document.querySelector('.glider-prev').addEventListener("click", function() {
+            var currentSlide = parseInt(document.querySelector('.glider-slide.active').getAttribute('data-slide'));
+            goToPreviousSlide(currentSlide)
+          });
+        
+          document.querySelector('.glider-next').addEventListener("click", function() {
+            var currentSlide = parseInt(document.querySelector('.glider-slide.active').getAttribute('data-slide'));
+            goToNextSlide(currentSlide)
+          });
+        
+          // Listen for the 'glider-slide-visible' event to know when the slide changes
+          document.querySelector('.glider').addEventListener('glider-slide-visible', function(event) {
+            // event.detail.slide gives the index of the new active slide.
+            // This index might start at 0 or 1 based on Glider.js configuration.
+            console.log('New active slide is:', event.detail.slide);
+            // event.detail.slide is the new active slide's index (assuming 0-based)
+            let activeIndex = event.detail.slide;
+            let activeSize = sizes[activeIndex];  // For example, "M"
+        
+            // Retrieve the size range data for the active size
+            let currentSizeData = sizingData.sizes[activeSize];
+        
+            // For each category (e.g., chest, torso, etc.)
+            categories.forEach(category => {
+              // Get the user's measurement for this category (assumes userInfo is kept updated)
+              let userMeasurement = userInfo[category];
+              
+              // Get the measurement range for the current size and category
+              let range = currentSizeData[category];
+              
+              if (range && userMeasurement) {
+                // Evaluate the fit (e.g., "Too Small", "Just Right", or "Too Big")
+                let fitResult = evaluateFit(userMeasurement, range);
+                
+                // Update the corresponding recommendation card's text
+                // Assuming each recommender card has a data attribute matching the category in lowercase.
+                let card = document.querySelector(`.sizing-card[data-category="${category.toLowerCase()}"] p`);
+                if (card) {
+                  card.textContent = fitResult;
+                }
+              }
+            });
+          });
         });
       }
 
@@ -565,65 +784,92 @@ document.addEventListener("DOMContentLoaded", () => {
         shapeElements.forEach(shape => shape.classList.remove('highlight'));
       }
     });
-  });
-
-
-  let gliderElement = document.querySelector(".glider");
-  let slides = document.querySelectorAll(".slide");
-
-  let glider = new Glider(gliderElement, {
-  slidesToShow: 1,
-  dots: '#dots',
-  draggable: true,
-  arrows: {
-    prev: '.glider-prev',
-    next: '.glider-next'
-  }
-  });
-
-  glider.scrollItem(1, true)
+  });  
 
 
 
-  function updateActiveSlide() {
-    let gliderRect = gliderElement.getBoundingClientRect();
-    let centerX = gliderRect.left + gliderRect.width / 2;
 
-    let closestSlide = null;
-    let closestDistance = Infinity;
-    let closestIndex = 0;
+  // Assuming sizes is an array like ["s", "m", "l"]
+  // if (sizes && sizes.length > 0) {
+  //   const gliderElement = document.querySelector('.glider');
+  //   gliderElement.innerHTML = ""; // Clear any existing slides
 
-    slides.forEach((slide, index) => {
-      let slideRect = slide.getBoundingClientRect();
-      let slideCenter = slideRect.left + slideRect.width / 2;
-      let distance = Math.abs(centerX - slideCenter);
+  //   sizes.forEach((size, index) => {
+  //     const slide = document.createElement('div');
+  //     slide.classList.add('slide');
+  //     slide.setAttribute('data-slide', index + 1);
+  //     slide.setAttribute('tabindex', '0');
+  //     slide.innerHTML = `<h1>${size.toUpperCase()}</h1>`;
+  //     gliderElement.appendChild(slide);
+  //   });
+  // } else {
+  //     // Otherwise, initialize it
+  //     glider = new Glider(gliderElement, {
+  //       slidesToShow: 1,
+  //       dots: '.dots',
+  //       draggable: true,
+  //       scrollLock: true,
+  //       rewind: true,
+  //       arrows: {
+  //         prev: '.glider-prev',
+  //         next: '.glider-next'
+  //       }
+  //     });
+  // }
 
-      if (distance < closestDistance) {
-        closestDistance = distance;
-        closestSlide = slide;
-        closestIndex = index;
-      }
-    });
-
-    // Apply active style to the closest slide
-    slides.forEach(slide => slide.classList.remove("active-slide"));
-    if (closestSlide) closestSlide.classList.add("active-slide");
-
-    // Snap to the closest slide
-    glider.scrollItem(closestIndex, true);
-    let size = document.getElementsByClassName("sizing-card")[0].getElementsByTagName("p")[0]; // Get the first <p>
-    size.textContent = closestIndex;
-  }
-
+  // let numberOfSliders = document.querySelectorAll('.glider-slide').length
   
+  // function getPreviousSlide(currentSlide) {
+  //   if (currentSlide === 1) {
+  //     return numberOfSliders;
+  //   } else {
+  //     return currentSlide - 1;
+  //   }
+  // }
+  
+  // function goToPreviousSlide(currentSlide) {
+  //     var previousSlide = getPreviousSlide(currentSlide);
+  //     var imageContent = document.querySelector(`.glider-slide:nth-of-type(${previousSlide})`);
+  //     document.querySelector('#hidden-image').innerHTML = imageContent.innerHTML;
+  // }
+  
+  // function getNextSlide(currentSlide) {
+  //   if (currentSlide === numberOfSliders) {
+  //     return 1;
+  //   } else {
+  //     return currentSlide + 1;
+  //   }
+  // }
+  
+  // function goToNextSlide(currentSlide) {
+  //     var previousSlide = getNextSlide(currentSlide);
+  //     var imageContent = document.querySelector(`.glider-slide:nth-of-type(${previousSlide})`);
+  //     document.querySelector('#hidden-image').innerHTML = imageContent.innerHTML;
+  // }
+  
+  // document.querySelector('.glider-prev').addEventListener("click", function() {
+  //   var currentSlide = parseInt(document.querySelector('.glider-slide.active').getAttribute('data-slide'));
+  //   goToPreviousSlide(currentSlide)
+  // });
+  
+  // document.querySelector('.glider-next').addEventListener("click", function() {
+  //   var currentSlide = parseInt(document.querySelector('.glider-slide.active').getAttribute('data-slide'));
+  //   goToNextSlide(currentSlide)
+  // });
+  
+  // // Listen for the 'glider-slide-visible' event to know when the slide changes
+  // document.querySelector('.glider').addEventListener('glider-slide-visible', function(event) {
+  //   // event.detail.slide gives the index of the new active slide.
+  //   // This index might start at 0 or 1 based on Glider.js configuration.
+  //   console.log('New active slide is:', event.detail.slide);
+  // });
 
-  // Detect active slide on scroll or button click
-  gliderElement.addEventListener("scroll", () => {
-    clearTimeout(window.gliderScrollTimeout);
-    window.gliderScrollTimeout = setTimeout(updateActiveSlide, 200);
-  });
 
-  updateActiveSlide();
-});
+
+})
+
+
+ 
+
 
 

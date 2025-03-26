@@ -3,7 +3,7 @@
 client_id = "6d959e3b05f5a0b80990424ba2b0a14d"
 name = "Fitback"
 handle = "fitback-5"
-application_url = "https://cindy-ebooks-cannon-wn.trycloudflare.com"
+application_url = "https://else-eating-converted-languages.trycloudflare.com"
 embedded = true
 
 [build]
@@ -17,9 +17,9 @@ scopes = "read_products,write_products"
 
 [auth]
 redirect_urls = [
-  "https://cindy-ebooks-cannon-wn.trycloudflare.com/auth/callback",
-  "https://cindy-ebooks-cannon-wn.trycloudflare.com/auth/shopify/callback",
-  "https://cindy-ebooks-cannon-wn.trycloudflare.com/api/auth/callback"
+  "https://else-eating-converted-languages.trycloudflare.com/auth/callback",
+  "https://else-eating-converted-languages.trycloudflare.com/auth/shopify/callback",
+  "https://else-eating-converted-languages.trycloudflare.com/api/auth/callback"
 ]
 
 [webhooks]

@@ -280,57 +280,20 @@
 }
 
 
-
-
-
-/*carousel*/
-#fitback-recommendation .glider{
-  text-align: center;
-  margin: 1rem 0 1rem 0;
-}
+/* Glider Carousel */
+.glider-contain {
+  width: 70% !important;
+} 
 
 .slide {
-  width: 100%;
-}
-
-#fitback-recommendation .active-slide {
-  background-color: black;
-  font-weight: bold;
-  border-radius: 4rem;
-}
-
-#fitback-recommendation .active-slide p {
-  color: white;
-  font-weight: bold;
+  background: gray;
   text-align: center;
+  display: flex;
 }
 
-#fitback-recommendation .glider-contain .glider-prev {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  background: none; /* customize styling as needed */
-  border: none;
-  font-size: 2rem; /* adjust size if necessary */
-  cursor: pointer;
-  left: -25%;
-  color: white;
-} 
-
-#fitback-recommendation .glider-contain .glider-next {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  background: none; /* customize styling as needed */
-  border: none;
-  font-size: 2rem; /* adjust size if necessary */
-  cursor: pointer;
-  right: -25%;
-  color: white;
-} 
-
-
-
+.glider-next, glider-prev {
+  font-size: 3rem;
+}
 
 
 #fitback-recommendation .screen-fit-container{
