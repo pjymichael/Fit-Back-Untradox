@@ -215,12 +215,13 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function evaluateFit(userMeasurement, range) {
+    console.log(range)
     // Ensure both values are numbers (if needed, parseFloat)
     userMeasurement = parseFloat(userMeasurement);
     if (userMeasurement < range.min) {
-      return "Too Small";
-    } else if (userMeasurement > range.max) {
       return "Too Big";
+    } else if (userMeasurement > range.max) {
+      return "Too Small";
     } else {
       return "Just Right";
     }
