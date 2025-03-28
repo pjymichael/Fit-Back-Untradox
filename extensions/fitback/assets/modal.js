@@ -28,110 +28,110 @@ let currentSize;
 let sizingData;
 let glider;
 
-// const workerCode = `
-//   // Load external scripts inside a try/catch.
-//   try {
-//     importScripts("https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.3.1/dist/tf.min.js");
-//     importScripts("https://cdn.jsdelivr.net/npm/@teachablemachine/pose@0.8/dist/teachablemachine-pose.min.js");
-//     console.log("TF1 Worker: External scripts loaded. TFJS version:", tf.version.tfjs);
-//   } catch(e) {
-//     console.error("Error loading external scripts:", e);
-//     self.postMessage("Failed to load external scripts.");
-//   }
+const workerCode = `
+  // Load external scripts inside a try/catch.
+  try {
+    importScripts("https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.3.1/dist/tf.min.js");
+    importScripts("https://cdn.jsdelivr.net/npm/@teachablemachine/pose@0.8/dist/teachablemachine-pose.min.js");
+    console.log("TF1 Worker: External scripts loaded. TFJS version:", tf.version.tfjs);
+  } catch(e) {
+    console.error("Error loading external scripts:", e);
+    self.postMessage("Failed to load external scripts.");
+  }
 
-//   // Confirm worker loaded.
-//   self.postMessage("TF1 Worker: Loaded successfully with external scripts!");
+  // Confirm worker loaded.
+  self.postMessage("TF1 Worker: Loaded successfully with external scripts!");
 
-//   // Variable to store the loaded model.
-//   let tmModel = null;
+  // Variable to store the loaded model.
+  let tmModel = null;
 
-//   // Listen for messages from the main thread.
-//   self.onmessage = async (e) => {
-//     const { command, data } = e.data;
+  // Listen for messages from the main thread.
+  self.onmessage = async (e) => {
+    const { command, data } = e.data;
 
-//     // Command: "version" – Return the TFJS version.
-//     if (command === "version") {
-//       self.postMessage({ type: "version", version: tf.version.tfjs });
-//     }
+    // Command: "version" – Return the TFJS version.
+    if (command === "version") {
+      self.postMessage({ type: "version", version: tf.version.tfjs });
+    }
 
-//     // Command: "LOAD_MODEL" – Load the Teachable Machine pose model.
-//     if (command === "LOAD_MODEL") {
-//       try {
-//         tmModel = await tmPose.load(data.modelURL, data.metadataURL);
-//         self.postMessage({ type: "model_loaded", success: true });
-//       } catch (err) {
-//         self.postMessage({ type: "model_loaded", success: false, error: err.toString() });
-//       }
-//     }
+    // Command: "LOAD_MODEL" – Load the Teachable Machine pose model.
+    if (command === "LOAD_MODEL") {
+      try {
+        tmModel = await tmPose.load(data.modelURL, data.metadataURL);
+        self.postMessage({ type: "model_loaded", success: true });
+      } catch (err) {
+        self.postMessage({ type: "model_loaded", success: false, error: err.toString() });
+      }
+    }
 
-//     // Command: "CLASSIFY_FRAME" – Classify a single frame.
-//     if (command === "CLASSIFY_FRAME") {
-//       if (!tmModel) {
-//         self.postMessage({ type: "classification", error: "No model loaded" });
-//         return;
-//       }
-//       try {
-//         const { width, height, buffer } = data; // from main thread
-//         const canvas = new OffscreenCanvas(width, height);
-//         const ctx = canvas.getContext("2d");
+    // Command: "CLASSIFY_FRAME" – Classify a single frame.
+    if (command === "CLASSIFY_FRAME") {
+      if (!tmModel) {
+        self.postMessage({ type: "classification", error: "No model loaded" });
+        return;
+      }
+      try {
+        const { width, height, buffer } = data; // from main thread
+        const canvas = new OffscreenCanvas(width, height);
+        const ctx = canvas.getContext("2d");
 
-//         // Create an ImageData from the buffer.
-//         const imageData = new ImageData(new Uint8ClampedArray(buffer), width, height);
-//         ctx.putImageData(imageData, 0, 0);
+        // Create an ImageData from the buffer.
+        const imageData = new ImageData(new Uint8ClampedArray(buffer), width, height);
+        ctx.putImageData(imageData, 0, 0);
 
-//         // Estimate pose and classify.
-//         const { pose: tmPoseOutput, posenetOutput } = await tmModel.estimatePose(canvas);
-//         const predictions = await tmModel.predict(posenetOutput);
-//         // Find the best prediction.
-//         let best = predictions.reduce((a, b) => a.probability > b.probability ? a : b);
+        // Estimate pose and classify.
+        const { pose: tmPoseOutput, posenetOutput } = await tmModel.estimatePose(canvas);
+        const predictions = await tmModel.predict(posenetOutput);
+        // Find the best prediction.
+        let best = predictions.reduce((a, b) => a.probability > b.probability ? a : b);
 
-//         self.postMessage({
-//           type: "classification",
-//           bestClass: best.className,
-//           probability: best.probability,
-//         });
-//       } catch (err) {
-//         self.postMessage({ type: "classification", error: err.toString() });
-//       }
-//     }
-//   };
-// `;
+        self.postMessage({
+          type: "classification",
+          bestClass: best.className,
+          probability: best.probability,
+        });
+      } catch (err) {
+        self.postMessage({ type: "classification", error: err.toString() });
+      }
+    }
+  };
+`;
 
-// const blob = new Blob([workerCode], { type: "application/javascript" });
-// const workerUrl = URL.createObjectURL(blob);
-// const tf1Worker = new Worker(workerUrl);
+const blob = new Blob([workerCode], { type: "application/javascript" });
+const workerUrl = URL.createObjectURL(blob);
+const tf1Worker = new Worker(workerUrl);
 
-// tf1Worker.onmessage = (event) => {
-//   // console.log("Main thread received:", event.data);
-// };
+tf1Worker.onmessage = (event) => {
+  // console.log("Main thread received:", event.data);
+};
 
-// // Optionally, listen for errors.
-// tf1Worker.onerror = (error) => {
-//   console.error("Worker error:", error);
-// };
+// Optionally, listen for errors.
+tf1Worker.onerror = (error) => {
+  console.error("Worker error:", error);
+};
 
-// setWorkerInstance(tf1Worker);
+setWorkerInstance(tf1Worker);
 
-// requestVersion();
+requestVersion();
 
-// async function collapsePose(canvas) {
-//   const ctx = canvas.getContext("2d", { willReadFrequently: true });
-//   const { width, height } = canvas;
-//   const imageData = ctx.getImageData(0, 0, width, height);
-//   const result = await classifyFrame(width, height, imageData.data.buffer);
-//   if (!result || !result.bestClass) {
-//     console.error("Worker classification failed, or no result");
-//     return { poseName: null, poseConfidence: 0 };
-//   }
-//   return {
-//     poseName: result.bestClass,
-//     poseConfidence: result.probability,
-//   };
-// }
+async function collapsePose(canvas) {
+  const ctx = canvas.getContext("2d", { willReadFrequently: true });
+  const { width, height } = canvas;
+  const imageData = ctx.getImageData(0, 0, width, height);
+  const result = await classifyFrame(width, height, imageData.data.buffer);
+  if (!result || !result.bestClass) {
+    console.error("Worker classification failed, or no result");
+    return { poseName: null, poseConfidence: 0 };
+  }
+  return {
+    poseName: result.bestClass,
+    poseConfidence: result.probability,
+  };
+}
 
-// requestVersion();
+requestVersion();
 
-// loadModel(TM_URL + "model.json", TM_URL + "metadata.json");
+loadModel(TM_URL + "model.json", TM_URL + "metadata.json");
 
 let userInfo = {
   gender: null,
@@ -206,7 +206,6 @@ document.addEventListener("DOMContentLoaded", () => {
   //categories: category of sizing (chest, shoulder, leg, waist etc...) (use to generate recommender card, with )
   let categories;
   //ensure product info exist
-  console.log(productInfo);
   if (productInfo) {
     try {
       let scriptTag = document.getElementById("sizing-data");
@@ -971,6 +970,292 @@ document.addEventListener("DOMContentLoaded", () => {
   //   // This index might start at 0 or 1 based on Glider.js configuration.
   //   console.log('New active slide is:', event.detail.slide);
   // });
+
+  //Camera Scan code
+
+  initFirebase(firebaseConfig);
+
+  let stream;
+  let detector;
+  let isDetecting = false;
+  let isReady = false;
+
+  async function startPoseDetection() {
+    if (!detector) {
+      detector = await initializePoseDetector();
+    }
+    isReady = true;
+    requestAnimationFrame(detectPose);
+  }
+
+  const THROTTLE_DELAY = 120; // ms
+  let lastTime = 0;
+
+  async function detectPose(timestamp) {
+    if (!isDetecting) return;
+
+    // Wait for video readiness
+    if (!isReady || !video || video.readyState < 2) {
+      requestAnimationFrame(detectPose);
+      return;
+    }
+
+    // Throttle
+    if (timestamp - lastTime < THROTTLE_DELAY) {
+      requestAnimationFrame(detectPose);
+      return;
+    }
+    lastTime = timestamp;
+
+    try {
+      const poses = await estimatePoses(detector, video);
+      drawPose(canvas, video, poses);
+    } catch (error) {
+      console.error("Error in pose estimation:", error);
+    }
+
+    requestAnimationFrame(detectPose);
+  }
+
+  function drawPose(canvas, video, poses) {
+    const ctx = canvas.getContext("2d", { willReadFrequently: true });
+
+    // Mirror the canvas so it looks more natural
+    ctx.save();
+    ctx.scale(-1, 1);
+    ctx.translate(-canvas.width, 0);
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    // ctx.clearRect(0, 0, canvas.width, canvas.height); // ← Problem is here!
+    ctx.restore();
+    video.display = "none";
+    poses.forEach((pose) => {
+      drawSkeleton(pose, ctx, video);
+      analysePose(pose, ctx);
+    });
+  }
+
+  const analysisState = {
+    state: "start",
+    validSince: null,
+    lastFeedback: "",
+    imageBlobArray: [],
+    photosTaken: 0,
+    uploadInProgress: false,
+  };
+  const REQUIRED_TIME = 3000;
+  let isClassifying = false;
+
+  async function analysePose(pose, ctx) {
+    const importantPoints = ["left_shoulder", "right_shoulder"];
+    const filteredKeypoints = pose.keypoints.filter((kp) =>
+      importantPoints.includes(kp.name),
+    );
+
+    const horizontalPadding = 5;
+    const verticalPadding = 5;
+    const left = horizontalPadding;
+    const right = ctx.canvas.width - horizontalPadding;
+    const top = verticalPadding;
+    const bottom = ctx.canvas.height - verticalPadding;
+
+    // Because the canvas is mirrored, x = ctx.canvas.width - kp.x
+    const pointsOutsidePadding = filteredKeypoints.filter((kp) => {
+      const x = ctx.canvas.width - kp.x;
+      const y = kp.y;
+      return x < left || x > right || y < top || y > bottom;
+    });
+    const isInsideFrame = pointsOutsidePadding.length === 0;
+    const now = Date.now();
+
+    // If we are in “upload_photo” state, just upload to firebase
+    if (analysisState.state === "upload_photo") {
+      DisplayFeedback("Uploading photos to firebase...");
+      updateSilhouette("disable");
+      uploadToFirebase(analysisState, (err, results) => {
+        if (err) {
+          console.error("Upload failed:", err);
+        } else {
+          console.log("Upload completed, download URLs:", results);
+          analysisState.state = "final_state";
+          DisplayFeedback("Photo upload completed successfully.");
+        }
+      });
+      return;
+    } else if (analysisState.state === "final_state") {
+      // Completed
+      DisplayFeedback("Measurement Process completed!");
+      // Example: auto-switch to Fit tab
+      setTimeout(() => {
+        tabFitBtn.click();
+        console.log("Switched to Fit tab after detection completed");
+      }, 1000);
+      return;
+    }
+
+    // If user is out of frame and we are mid-flow
+    if (!isInsideFrame && analysisState.state !== "start") {
+      if (analysisState.imageBlobArray.length === 0) {
+        analysisState.state = "detecting_one";
+      } else if (analysisState.imageBlobArray.length === 1) {
+        analysisState.state = "detecting_two";
+      }
+      analysisState.validSince = null;
+      const msg = "Please stand inside the frame";
+      if (analysisState.lastFeedback !== msg) {
+        DisplayFeedback(msg);
+        analysisState.lastFeedback = msg;
+      }
+      return;
+    }
+
+    // Show the silhouette (30% opacity, front or side)
+    updateSilhouette("start");
+
+    // If inside the frame, increment time. Once we’re steady for REQUIRED_TIME, do a new state action
+    if (isInsideFrame) {
+      if (!analysisState.validSince) {
+        analysisState.validSince = now;
+      }
+
+      if (now - analysisState.validSince >= REQUIRED_TIME) {
+        switch (analysisState.state) {
+          case "start":
+            console.log("Transitioning to detecting_one");
+            analysisState.state = "detecting_one";
+            analysisState.validSince = now;
+            DisplayFeedback("Detecting your pose...");
+            break;
+
+          case "detecting_one":
+            if (isClassifying) break;
+            isClassifying = true;
+            const result1 = await collapsePose(canvas);
+            if (
+              result1.poseName === "Front-view" &&
+              result1.poseConfidence > 0.7
+            ) {
+              DisplayFeedback("Pose Detected, taking photo");
+              analysisState.state = "ready_one";
+              analysisState.validSince = now;
+            } else {
+              DisplayFeedback("Please match the silhouette with your body");
+              isClassifying = false;
+              return;
+            }
+            isClassifying = false;
+            break;
+
+          case "ready_one":
+            DisplayFeedback("Taking front photo...");
+            returnPhotoRef("front", (err, result) => {
+              if (err) {
+                console.error("Capture Photo method failed", err);
+              } else {
+                console.log("Saved front image:", result);
+                analysisState.imageBlobArray.push(result);
+                analysisState.state = "start_2";
+                analysisState.validSince = now;
+                DisplayFeedback("Please rotate 90° to the right");
+              }
+            });
+            break;
+
+          case "start_2":
+            analysisState.state = "detecting_two";
+            analysisState.validSince = now;
+            updateSilhouette("start_2");
+            // We'll rely on the user physically rotating
+            break;
+
+          case "detecting_two":
+            if (isClassifying) break;
+            isClassifying = true;
+            const result2 = await collapsePose(canvas);
+            if (
+              result2.poseName === "side-view" &&
+              result2.poseConfidence > 0.7
+            ) {
+              DisplayFeedback("Pose Detected, taking photo");
+              analysisState.state = "ready_two";
+              analysisState.validSince = now;
+            } else {
+              DisplayFeedback("Please match the silhouette with your body");
+              isClassifying = false;
+              return;
+            }
+            isClassifying = false;
+            break;
+
+          case "ready_two":
+            DisplayFeedback("Taking side photo...");
+            returnPhotoRef("side", (err, result) => {
+              if (err) {
+                console.error("Capture Photo method failed", err);
+              } else {
+                console.log("Saved side image:", result);
+                analysisState.imageBlobArray.push(result);
+                analysisState.state = "upload_photo";
+                analysisState.validSince = now;
+                DisplayFeedback("Ready to upload photos...");
+              }
+            });
+            break;
+
+          default:
+            // If state is unrecognized, reset to “start”
+            analysisState.state = "start";
+            analysisState.validSince = now;
+            DisplayFeedback("Resetting detection. Please stand still.");
+            break;
+        }
+      } else {
+        // Not enough consecutive frames yet
+        const msg = "Detection in progress, remain still...";
+        if (analysisState.lastFeedback !== msg) {
+          DisplayFeedback(msg);
+          analysisState.lastFeedback = msg;
+        }
+      }
+    } else {
+      // If we are in “start” but not inside the frame
+      if (analysisState.state === "start") {
+        const msg = "Please match the silhouette with your body";
+        if (analysisState.lastFeedback !== msg) {
+          DisplayFeedback(msg);
+          analysisState.lastFeedback = msg;
+        }
+      }
+    }
+  }
+  function returnPhotoRef(url_modifier, callback) {
+    console.log("Capturing photo for", url_modifier);
+    const tempCanvas = document.createElement("canvas");
+    tempCanvas.width = video.videoWidth;
+    tempCanvas.height = video.videoHeight;
+
+    const ctx = tempCanvas.getContext("2d", { willReadFrequently: true });
+    ctx.drawImage(video, 0, 0, tempCanvas.width, tempCanvas.height);
+
+    const now = new Date();
+    const timestamp = now.toISOString().replace(/[:.]/g, "-");
+    const filename = `${url_modifier}_${timestamp}.jpg`;
+
+    tempCanvas.toBlob(
+      (blob) => {
+        if (!blob) {
+          console.error("Failed to capture image as Blob.");
+          if (callback) callback(new Error("Failed to create Blob"), null);
+          return;
+        }
+        console.log("Photo captured:", filename);
+        if (callback) {
+          callback(null, { filename, blob });
+        }
+      },
+      "image/jpeg",
+      0.99,
+    );
+  }
 });
 
 const showElement = (ele) => {
@@ -1280,3 +1565,32 @@ const saveProfileMeasurementDetails = (measurementInputArray) => {
 
   updateMeasurementCards();
 };
+
+function DisplayFeedback(message) {
+  const userFeedback = document.getElementById("user-feedback");
+  userFeedback.innerHTML = message;
+}
+
+function updateSilhouette(mode) {
+  const silhouette = document.getElementById("expected-silhouette");
+  if (!silhouette) return;
+
+  switch (mode) {
+    case "start":
+      // console.log("silhouette start");
+      silhouette.style.opacity = "0.3";
+      break;
+    case "start_2":
+      // “detecting_one” or “ready_one” => silhouette 30%
+      silhouette.src = "./images/side.png";
+      silhouette.style.opacity = "0.3";
+
+      break;
+    case "disable":
+      silhouette.style.opacity = "0";
+      break;
+    default:
+      console.error("Invalid mode");
+      break;
+  }
+}

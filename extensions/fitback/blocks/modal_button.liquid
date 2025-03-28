@@ -2,6 +2,12 @@
 {{'glider.min.css' | asset_url | stylesheet_tag}}
 
 <body id="fitback-recommendation">
+    <script src="https://www.gstatic.com/firebasejs/11.3.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.3.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.3.1/firebase-storage-compat.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.9.0/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection"></script>
     <div id="modal-overlay" class="modal-overlay hidden">
         <div class="modal-content">
             <div id="onboard-welcome" class="onboard-welcome">
