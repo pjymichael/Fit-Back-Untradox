@@ -85,6 +85,25 @@
                     <p class="btn-primary__text">Start Scan</p>
                 </button>
             </div>
+            <div id="CameraScan" class="hidden">
+                <h1>Camera-Scan Front</h1>
+                <div class="camera-container">
+                    <p id="user-feedback"></p>
+                    <div id="camera-display-format">
+                      <video id="camera-preview" autoplay playsinline></video>
+                      
+                      <canvas id="camera-output" ></canvas>
+                      <img
+                        id="expected-silhouette"
+                        src="{{'front.png'|asset_url}}"
+                        alt="Expected Outline"
+                      />
+                    </div> 
+                  </div>
+                    <!-- <button id="CameraScan-next" class="btn btn-primary">
+                    <p class="btn-primary__text">Next</p>
+                </button> -->
+            </div>
             <div id="recommendation-content" class="recommendation-content hidden">
                 <nav class="modal-tabs">
                     <button id="tab-fit-btn" class="tab-button active">My Fit</button>
@@ -359,7 +378,7 @@
   </script>
 {% endif %}
 <script src="{{ 'glider.min.js' | asset_url }}" defer></script>
-<script src="{{ 'modal.js' | asset_url }}" defer></script>
+<script type="module" src="{{ 'modal.js' | asset_url }}" defer></script>
 
 {% schema %}
 {
