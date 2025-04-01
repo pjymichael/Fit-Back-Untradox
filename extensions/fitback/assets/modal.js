@@ -9,6 +9,8 @@ import {
   classifyFrame,
 } from "./workerFunctionsHelper.js";
 import { initializePoseDetector, estimatePoses } from "./poseDetector.js";
+import { predictSizes } from "./predictSize.js"
+
 //variable storage for user
 // Declare variables at the top of your script
 let gender = "";
@@ -31,7 +33,7 @@ let glider;
 const workerCode = `
   // Load external scripts inside a try/catch.
   try {
-    importScripts("https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.3.1/dist/tf.min.js");
+    //importScripts("https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.3.1/dist/tf.min.js");
     importScripts("https://cdn.jsdelivr.net/npm/@teachablemachine/pose@0.8/dist/teachablemachine-pose.min.js");
     console.log("TF1 Worker: External scripts loaded. TFJS version:", tf.version.tfjs);
   } catch(e) {
@@ -1031,6 +1033,8 @@ document.addEventListener("DOMContentLoaded", () => {
     imageBlobArray: [],
     photosTaken: 0,
     uploadInProgress: false,
+    frontImageTensor: null, // image tensors for the size prediction
+    sideImageTensor: null,
   };
   const REQUIRED_TIME = 3000;
   let isClassifying = false;
@@ -1061,17 +1065,30 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // analysisState.state = "final_state"; // debugging statement
     if (analysisState.state === "upload_photo") {
-      DisplayFeedback("Uploading photos to firebase...");
+      //DisplayFeedback("Uploading photos to firebase...");
+      DisplayFeedback("Predicting measurements...");
       updateSilhouette("disable");
-      uploadToFirebase(analysisState, (err, results) => {
-        if (err) {
-          console.error("Upload failed:", err);
-        } else {
-          console.log("Upload completed, download URLs:", results);
-          analysisState.state = "final_state";
-          DisplayFeedback("Photo upload completed successfully.");
-        }
-      });
+
+      // REPLACE update to firebase with running prediction model
+      //uploadToFirebase(analysisState, (err, results) => {
+      //  if (err) {
+      //    console.error("Upload failed:", err);
+      //  } else {
+      //    console.log("Upload completed, download URLs:", results);
+      //    analysisState.state = "final_state";
+      //    DisplayFeedback("Photo upload completed successfully.");
+      //  }
+      //});
+      //const heightCM = 160;
+      //const weightKG = 60;
+      measurements = await predictSizes(
+        analysisState.frontImageTensor,
+        analysisState.sideImageTensor,
+        userInfo.height,
+        userInfo.weight,
+      )
+      console.log("PREDICTION: obtained MNAS measurements: ", measurements);
+      // update the user details
       return;
     } else if (analysisState.state === "final_state") {
       // Completed
@@ -1152,6 +1169,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 analysisState.imageBlobArray.push(result);
                 analysisState.state = "start_2";
                 analysisState.validSince = now;
+                analysisState.frontImageTensor = result.tensor;
                 DisplayFeedback("Please rotate 90° to the right");
               }
             });
@@ -1193,6 +1211,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 analysisState.imageBlobArray.push(result);
                 analysisState.state = "upload_photo";
                 analysisState.validSince = now;
+                analysisState.sideImageTensor = result.tensor;
                 DisplayFeedback("Ready to upload photos...");
               }
             });
@@ -1246,7 +1265,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         console.log("Photo captured:", filename);
         if (callback) {
-          callback(null, { filename, blob });
+          callback(null, { filename, blob, tensor: tf.browser.fromPixels(tempCanvas) });
         }
       },
       "image/jpeg",

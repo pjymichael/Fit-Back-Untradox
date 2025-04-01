@@ -7,6 +7,7 @@
     <script src="https://www.gstatic.com/firebasejs/11.3.1/firebase-storage-compat.js"></script>
 
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.9.0/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/deeplab"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection"></script>
     <div id="modal-overlay" class="modal-overlay hidden">
         <div class="modal-content">
@@ -30,7 +31,7 @@
                     <p class="btn-primary__text">Get Started</p>
                 </button>
             </div>
-            
+
             <div id="onboard-user-input" class="onboard-user-input hidden">
                 <h1>Enter the following details to help us with your measurements: </h1>
                 <form id="user-detail-form" class="form">
@@ -44,7 +45,7 @@
                     </div>
                     <div>
                         <label>Height (cm) (required)</label>
-                        <input type="number" id="height-input" name="height" required  value="170"> 
+                        <input type="number" id="height-input" name="height" required  value="170">
                     </div>
                     <div>
                         <label>Weight (kg) (required)</label>
@@ -63,13 +64,13 @@
                     <p class="btn-secondary__text">Use Existing Profile</p>
                 </button>
             </div>
-            
+
             <div id="onboard-camera-prompt" class="onboard-camera-prompt hidden">
                 <h1>Fitback determines your measurements using oe picture of your front and one picture of your side. </h1>
                 <div>
                     <img src="{{'guide.png'|asset_url}}" alt="">
                 </div>
-                
+
                 <button id="onboard-camera-prompt-next" class="btn btn-primary">
                     <p class="btn-primary__text">Continue with scan</p>
                 </button>
@@ -98,17 +99,17 @@
                     {% comment %} <p id="user-feedback"></p> {% endcomment %}
                     <div id="camera-display-format">
                       <video id="camera-preview" autoplay playsinline></video>
-                      
+
                       <canvas id="camera-output" ></canvas>
                       <img id="expected-silhouette"
                     src="{{ 'front.png' | asset_url }}"
                         data-side="{{ 'side.png' | asset_url }}"
                         alt="Expected Outline">
-                    </div> 
+                    </div>
                   </div>
                 <button id="CameraScan-next" class="btn btn-primary">
                     <p class="btn-primary__text">Next</p>
-               
+
                 </button>
             </div>
             <div id="CameraScan-class2" class="hidden">
@@ -242,9 +243,9 @@
                     </div>
                     <!-- svg and sizes -->
 
-                        
+
                 </section>
-            
+
                 <!-- Screen 2: "My Profile" -->
                 <section id="screen-profile" class="tab-screen hidden">
                     <div id="screen-profile-measurement-details" class="screen-profile-measurement-details">
@@ -290,11 +291,11 @@
                                                 fill: none;
                                                 stroke-miterlimit: 10;
                                             }
-                                
+
                                             .cls-1 {
                                                 stroke: #d9d9d8;
                                             }
-                                
+
                                             .cls-2 {
                                                 stroke: #231f20;
                                             }
@@ -371,7 +372,7 @@
                                 <input type="number" id="thigh-input" name="thigh" required>
                             </div>
                         </form>
-        
+
                         <button id="profile-measurement-manual-confirm-change-btn" class="btn btn-primary" >
                             <p class="btn-primary__text">Confirm Changes</p>
                         </button>
@@ -381,7 +382,7 @@
             <div>
                 <img class="footer-logo" src="{{'poweredByFitback.jpg'|asset_url}}" alt="">
             </div>
-        </div>   
+        </div>
 
     </div>
 
