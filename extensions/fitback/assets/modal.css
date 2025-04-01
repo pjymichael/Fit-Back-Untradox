@@ -386,7 +386,9 @@ h5 {
 }
 /* camera scan code */
 #user-feedback {
-  font-size: 50px;
+  margin: 0 !important;
+  font-size: 2rem !important;
+  font-weight: bold !important;
 }
 
 .camera-container {
@@ -394,9 +396,6 @@ h5 {
   position: relative;
 }
 
-#user-feedback {
-  font-size: 50px;
-}
 #camera-preview {
   display: block; /* ensures the video is on its own line */
   width: 100%; /* fill the container's width */
