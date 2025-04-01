@@ -99,16 +99,22 @@
                       <video id="camera-preview" autoplay playsinline></video>
                       
                       <canvas id="camera-output" ></canvas>
-                      <img
+                      <img id="expected-silhouette"
+                    src="{{ 'front.png' | asset_url }}"
+                        data-side="{{ 'side.png' | asset_url }}"
+                        alt="Expected Outline">
+                        
+                        
+                      {% comment %} <img
                         id="expected-silhouette"
                         src="{{'front.png'|asset_url}}"
                         alt="Expected Outline"
-                      />
+                      /> {% endcomment %}
                     </div> 
                   </div>
-                    <!-- <button id="CameraScan-next" class="btn btn-primary">
+                <button id="CameraScan-next" class="btn btn-primary">
                     <p class="btn-primary__text">Next</p>
-                </button> -->
+                </button>
             </div>
             <div id="recommendation-content" class="recommendation-content hidden">
                 <nav class="modal-tabs">
@@ -119,7 +125,6 @@
                 <section id="screen-fit" class="tab-screen">
                     <div class="glider-contain">
                         <button role="button" aria-label="Previous Image" class="glider-prev">
-                            < 
                         </button>
                             <div class="glider">
                                 <div class="slide" data-slide="1" tabindex="0">
@@ -133,7 +138,6 @@
                                 </div>
                             </div>
                         <button role="button" aria-label="Next Image" class="glider-next">
-                            >
                         </button>
                         <div role="tablist" class="dots"></div>
                     </div>

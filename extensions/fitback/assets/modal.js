@@ -1582,9 +1582,8 @@ function updateSilhouette(mode) {
       break;
     case "start_2":
       // “detecting_one” or “ready_one” => silhouette 30%
-      silhouette.src = "./images/side.png";
       silhouette.style.opacity = "0.3";
-
+      silhouette.src = silhouette.dataset.side;
       break;
     case "disable":
       silhouette.style.opacity = "0";
