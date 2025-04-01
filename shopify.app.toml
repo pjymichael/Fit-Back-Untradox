@@ -3,7 +3,7 @@
 client_id = "6d959e3b05f5a0b80990424ba2b0a14d"
 name = "Fitback"
 handle = "fitback-5"
-application_url = "https://herbal-advance-appear-ripe.trycloudflare.com"
+application_url = "https://undefined-realty-difficult-risk.trycloudflare.com"
 embedded = true
 
 [build]
@@ -17,9 +17,9 @@ scopes = "read_products,write_products"
 
 [auth]
 redirect_urls = [
-  "https://herbal-advance-appear-ripe.trycloudflare.com/auth/callback",
-  "https://herbal-advance-appear-ripe.trycloudflare.com/auth/shopify/callback",
-  "https://herbal-advance-appear-ripe.trycloudflare.com/api/auth/callback"
+  "https://undefined-realty-difficult-risk.trycloudflare.com/auth/callback",
+  "https://undefined-realty-difficult-risk.trycloudflare.com/auth/shopify/callback",
+  "https://undefined-realty-difficult-risk.trycloudflare.com/api/auth/callback"
 ]
 
 [webhooks]

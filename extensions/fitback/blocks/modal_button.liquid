@@ -92,6 +92,7 @@
                 </button>
             </div>
             <div id="CameraScan" class="hidden">
+                <div id="CameraScan-class1"  >
                 <p id="user-feedback">Camera-Scan Front</h1>
                 <div class="camera-container">
                     {% comment %} <p id="user-feedback"></p> {% endcomment %}
@@ -103,19 +104,21 @@
                     src="{{ 'front.png' | asset_url }}"
                         data-side="{{ 'side.png' | asset_url }}"
                         alt="Expected Outline">
-                        
-                        
-                      {% comment %} <img
-                        id="expected-silhouette"
-                        src="{{'front.png'|asset_url}}"
-                        alt="Expected Outline"
-                      /> {% endcomment %}
                     </div> 
                   </div>
                 <button id="CameraScan-next" class="btn btn-primary">
                     <p class="btn-primary__text">Next</p>
+               
                 </button>
             </div>
+            <div id="CameraScan-class2" class="hidden">
+                    <p id="finding-size-text">Finding Your Size....</h1>
+                <img id="finding-your-size-logo"
+                    src="{{ 'find-your-size-logo.png' | asset_url }}"
+                        alt="Finding Your Size Logo">
+            </div>
+            </div>
+
             <div id="recommendation-content" class="recommendation-content hidden">
                 <nav class="modal-tabs">
                     <button id="tab-fit-btn" class="tab-button active">My Fit</button>

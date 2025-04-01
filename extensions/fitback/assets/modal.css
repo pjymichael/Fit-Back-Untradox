@@ -439,3 +439,10 @@ h5 {
   /* If you want it responsive to the parent, you could do width: 100%; */
   /* If you prefer to shrink-wrap exactly to the video's size, use inline-block. */
 }
+
+#finding-size-text {
+  margin: 0 !important;
+  font-size: 3rem !important;
+  font-weight: bold !important;
+  text-align: center !important;
+}

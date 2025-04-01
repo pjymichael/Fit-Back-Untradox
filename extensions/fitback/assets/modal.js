@@ -151,6 +151,8 @@ let userInfo = {
 document.addEventListener("DOMContentLoaded", () => {
   const elements = initializeElements();
   const {
+    camerascanclass1,
+    camerascanclass2,
     productInfo,
     canvas,
     video,
@@ -472,7 +474,6 @@ document.addEventListener("DOMContentLoaded", () => {
     },
     deactivateCamera() {
       console.log("Deactivating camera... outer loop");
-
       if (video.srcObject) {
         video.srcObject.getTracks().forEach((track) => track.stop());
         video.srcObject = null;
@@ -1068,6 +1069,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const now = Date.now();
 
     // If we are in “upload_photo” state, just upload to firebase
+
+    // analysisState.state = "final_state"; // debugging statement
     if (analysisState.state === "upload_photo") {
       DisplayFeedback("Uploading photos to firebase...");
       updateSilhouette("disable");
@@ -1086,8 +1089,13 @@ document.addEventListener("DOMContentLoaded", () => {
       DisplayFeedback("Measurement Process completed!");
       // Example: auto-switch to Fit tab
       setTimeout(() => {
-        tabFitBtn.click();
+        // tabFitBtn.click();
         console.log("Switched to Fit tab after detection completed");
+        camerascanclass1.style.display = "none";
+        console.log(camerascanclass2);
+        camerascanclass2.classList.remove("hidden");
+        console.log(camerascanclass2);
+        cameraController.deactivateCamera();
       }, 1000);
       return;
     }
@@ -1270,6 +1278,8 @@ const hideElement = (ele) => {
 
 function initializeElements() {
   return {
+    camerascanclass2: document.getElementById("CameraScan-class2"),
+    camerascanclass1: document.getElementById("CameraScan-class1"),
     productInfo: document.getElementById("sizing-data"),
     canvas: document.getElementById("camera-output"),
     video: document.getElementById("camera-preview"),
@@ -1568,6 +1578,7 @@ const saveProfileMeasurementDetails = (measurementInputArray) => {
 
 function DisplayFeedback(message) {
   const userFeedback = document.getElementById("user-feedback");
+  if (userFeedback.innerHTML === message) return;
   userFeedback.innerHTML = message;
 }
 
