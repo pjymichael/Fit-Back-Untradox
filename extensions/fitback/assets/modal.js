@@ -330,19 +330,6 @@ document.addEventListener("DOMContentLoaded", () => {
   // });
   //////////////////////////////////////////////////////////////////////////helper functions
 
-  function evaluateFit(userMeasurement, range) {
-    console.log(range);
-    // Ensure both values are numbers (if needed, parseFloat)
-    userMeasurement = parseFloat(userMeasurement);
-    if (userMeasurement < range.min) {
-      return "Too Big";
-    } else if (userMeasurement > range.max) {
-      return "Too Small";
-    } else {
-      return "Just Right";
-    }
-  }
-
   const constructRecommenderCard = (productSizeCategory) => {
     //product size category will be an array of categories (e.g) [chest, torso, shoulder]
     //loop through and create a sizing card like the following (with h5 using category, set p text content as NA first )
@@ -496,6 +483,8 @@ document.addEventListener("DOMContentLoaded", () => {
     userDetailForm,
     userDetailArray,
     cameraController,
+    sizes,
+    categories,
   );
 
   const recommendationScreenArray = [
@@ -1369,6 +1358,8 @@ function setupOnboardingNavigation(
   userDetailForm,
   userDetailArray,
   cameraController,
+  sizes,
+  categories,
 ) {
   nextBtns.forEach((btn, index) => {
     if (!btn) return;
@@ -1397,6 +1388,124 @@ function setupOnboardingNavigation(
       btn.addEventListener("click", () => {
         screens.forEach((screen) => hideElement(screen));
         showElement(screens[index + 1]);
+
+        // doing glider modifications here
+        const gliderElement = document.querySelector(".glider");
+        gliderElement.innerHTML = ""; // Clear any existing slides
+
+        sizes.forEach((size, index) => {
+          const slide = document.createElement("div");
+          slide.classList.add("slide");
+          slide.setAttribute("data-slide", index + 1);
+          slide.setAttribute("tabindex", "0");
+          slide.innerHTML = `<h1>${size.toUpperCase()}</h1>`;
+          gliderElement.appendChild(slide);
+        });
+        glider = new Glider(document.querySelector(".glider"), {
+          slidesToShow: 1,
+          dots: ".dots",
+          draggable: true,
+          scrollLock: true,
+          rewind: true,
+          arrows: {
+            prev: ".glider-prev",
+            next: ".glider-next",
+          },
+        });
+        var numberOfSliders = document.querySelectorAll(".glider-slide").length;
+
+        glider.refresh();
+
+        function getPreviousSlide(currentSlide) {
+          if (currentSlide === 1) {
+            return numberOfSliders;
+          } else {
+            return currentSlide - 1;
+          }
+        }
+
+        function goToPreviousSlide(currentSlide) {
+          var previousSlide = getPreviousSlide(currentSlide);
+          var imageContent = document.querySelector(
+            `.glider-slide:nth-of-type(${previousSlide})`,
+          );
+        }
+
+        function getNextSlide(currentSlide) {
+          if (currentSlide === numberOfSliders) {
+            return 1;
+          } else {
+            return currentSlide + 1;
+          }
+        }
+
+        function goToNextSlide(currentSlide) {
+          var previousSlide = getNextSlide(currentSlide);
+          var imageContent = document.querySelector(
+            `.glider-slide:nth-of-type(${previousSlide})`,
+          );
+        }
+
+        document
+          .querySelector(".glider-prev")
+          .addEventListener("click", function () {
+            var currentSlide = parseInt(
+              document
+                .querySelector(".glider-slide.active")
+                .getAttribute("data-slide"),
+            );
+            goToPreviousSlide(currentSlide);
+          });
+
+        document
+          .querySelector(".glider-next")
+          .addEventListener("click", function () {
+            var currentSlide = parseInt(
+              document
+                .querySelector(".glider-slide.active")
+                .getAttribute("data-slide"),
+            );
+            goToNextSlide(currentSlide);
+          });
+
+        // Listen for the 'glider-slide-visible' event to know when the slide changes
+        document
+          .querySelector(".glider")
+          .addEventListener("glider-slide-visible", function (event) {
+            // event.detail.slide gives the index of the new active slide.
+            // This index might start at 0 or 1 based on Glider.js configuration.
+            console.log("New active slide is:", event.detail.slide);
+            // event.detail.slide is the new active slide's index (assuming 0-based)
+            let activeIndex = event.detail.slide;
+            let activeSize = sizes[activeIndex]; // For example, "M"
+
+            // Retrieve the size range data for the active size
+            let currentSizeData = sizingData.sizes[activeSize];
+
+            // For each category (e.g., chest, torso, etc.)
+            categories.forEach((category) => {
+              // Get the user's measurement for this category (assumes userInfo is kept updated)
+              let userMeasurement = userInfo[category];
+
+              // Get the measurement range for the current size and category
+              let range = currentSizeData[category];
+
+              if (range && userMeasurement) {
+                // Evaluate the fit (e.g., "Too Small", "Just Right", or "Too Big")
+                let fitResult = evaluateFit(userMeasurement, range);
+
+                // Update the corresponding recommendation card's text
+                // Assuming each recommender card has a data attribute matching the category in lowercase.
+                let card = document.querySelector(
+                  `.sizing-card[data-category="${category.toLowerCase()}"] p`,
+                );
+                if (card) {
+                  card.textContent = fitResult;
+                }
+              }
+            });
+          });
+        //ending
       });
     } else {
       btn.addEventListener("click", () => {
@@ -1602,5 +1711,18 @@ function updateSilhouette(mode) {
     default:
       console.error("Invalid mode");
       break;
+  }
+}
+
+function evaluateFit(userMeasurement, range) {
+  console.log(range);
+  // Ensure both values are numbers (if needed, parseFloat)
+  userMeasurement = parseFloat(userMeasurement);
+  if (userMeasurement < range.min) {
+    return "Too Big";
+  } else if (userMeasurement > range.max) {
+    return "Too Small";
+  } else {
+    return "Just Right";
   }
 }
