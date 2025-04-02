@@ -9,7 +9,42 @@ import {
   classifyFrame,
 } from "./workerFunctionsHelper.js";
 import { initializePoseDetector, estimatePoses } from "./poseDetector.js";
-import { predictSizes } from "./predictSize.js"
+import { predictSizes } from "./predictSize.js?v=789";
+
+/*
+//TODO: REMOVE AFTER CHECKING THAT THE MODEL CAN BE Loaded
+console.log("PREDICTION: Trying to load deeplab model");
+console.log("PREDICTION: tfjs version: ", tf.version.tfjs);
+try {
+  const testModel = await deeplab.load({ base: "pascal", quantizationBytes: 2 });
+  //const MNAS_URL = "https://huggingface.co/batmanBinSuparman/bmnet/resolve/main/bmTest/model.json";
+  //const model = await tf.loadGraphModel(MNAS_URL); // Change to your actual model path
+  //statusElement.textContent = "Model loaded successfully!";
+  console.log("PREDICTION: Model loaded:", testModel);
+} catch (error) {
+  //statusElement.textContent = "Failed to load model.";
+  console.error("PREDICTION: Error loading model:", error);
+}
+
+// try to load image and make predictions
+const imgTest = new Image();
+imgTest.crossOrigin = "anonymous";
+imgTest.src = "https://dm0qx8t0i9gc9.cloudfront.net/watermarks/image/rDtN98Qoishumwih/trendy-guy-standing-agaisnt-the-wall-and-smiling_HFQ-W4t6Bj_SB_PM.jpg";
+await new Promise((resolve) => {
+  imgTest.onload = resolve;
+});
+
+console.log("PREDICTION: Test image loaded");
+
+const testTensor = tf.browser.fromPixels(imgTest, 3);
+console.log("PREDICTION: Test tensor loaded. Starting prediction on:", testTensor);
+
+const res = await predictSizes(testTensor, testTensor, 160, 60);
+console.log("PREDICTION: measurements done: ", res);
+*/
+
+
+
 
 //variable storage for user
 // Declare variables at the top of your script
@@ -33,9 +68,10 @@ let glider;
 const workerCode = `
   // Load external scripts inside a try/catch.
   try {
-    //importScripts("https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.3.1/dist/tf.min.js");
+    importScripts("https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.3.1/dist/tf.min.js");
     importScripts("https://cdn.jsdelivr.net/npm/@teachablemachine/pose@0.8/dist/teachablemachine-pose.min.js");
     console.log("TF1 Worker: External scripts loaded. TFJS version:", tf.version.tfjs);
+      self.postMessage({ type: "version", version: tf.version.tfjs });
   } catch(e) {
     console.error("Error loading external scripts:", e);
     self.postMessage("Failed to load external scripts.");
@@ -1081,14 +1117,43 @@ document.addEventListener("DOMContentLoaded", () => {
       //});
       //const heightCM = 160;
       //const weightKG = 60;
-      measurements = await predictSizes(
+      analysisState.state = "final_state";
+      const measurements = await predictSizes(
         analysisState.frontImageTensor,
         analysisState.sideImageTensor,
-        userInfo.height,
-        userInfo.weight,
+        Math.round(userInfo.height),
+        Math.round(userInfo.weight),
       )
+      // turn measurements into an update object
+      // let gender = "";
+      //let height = 0;
+      //let weight = 0;
+      //let age = 0;
+      //
+      //let shoulder = 0;
+      //let hip = 0;
+      //let arm = 0;
+      //let leg = 0;
+      //let chest = 0;
+      //let waist = 0;
+      //let torso = 0;
+      //let thigh = 0;
+      // measurement-columns = ['ankle', 'arm-length', 'bicep', 'calf', 'chest', 'forearm', 'hip', 'leg-length', 'shoulder-breadth', 'shoulder-to-crotch', 'thigh', 'waist', 'wrist']
+      const updates = {
+        "shoulder": measurements[8],
+        "hip": measurements[6],
+        "arm": measurements[1],
+        "leg": measurements[7],
+        "chest": measurements[4],
+        "waist": measurements[11],
+        "torso": measurements[9],
+        "thigh": measurements[10],
+      }
+      //updateUserInfo
+
       console.log("PREDICTION: obtained MNAS measurements: ", measurements);
       // update the user details
+      analysisState.state = "final_state";
       return;
     } else if (analysisState.state === "final_state") {
       // Completed

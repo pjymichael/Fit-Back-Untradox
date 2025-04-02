@@ -394,6 +394,7 @@
   </script>
 {% endif %}
 <script src="{{ 'glider.min.js' | asset_url }}" defer></script>
+<script type="module" src="{{ 'predictSize.js' | asset_url | split: '?' | first }}"></script>
 <script type="module" src="{{ 'modal.js' | asset_url }}" defer></script>
 
 {% schema %}

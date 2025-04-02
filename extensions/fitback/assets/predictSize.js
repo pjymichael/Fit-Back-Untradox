@@ -12,7 +12,6 @@ async function makeSilhouette(imageTensor, deepLabV3) {
   console.log(imageTensor.dtype);
   console.log("PREDICTION: running segmentation...");
   //TODO Why is it failing here
-  console.log(imageTensor.dtype);
   let result = await deepLabV3.segment(imageTensor);
   console.log("PREDICTION: segmentation successful!!!");
 
@@ -31,7 +30,7 @@ async function makeSilhouette(imageTensor, deepLabV3) {
   return mask;
 }
 
-async function cropAndResize(imgTensor) {
+function cropAndResizeSync(imgTensor) {
   const targetHeight = 640;
   const targetWidth = 480;
   //const targetWidth = 960;
@@ -66,20 +65,29 @@ export async function predictSizes(
   output: length 13 tensor (converted to array)
   */
   console.log("PREDICTION: loading deeplab...");
-  const deepLabV3 = await deeplab.load({ base: "pascal", quantizationBytes: 2 });
+  let deepLabV3 = null;
+  try {
+    deepLabV3 = await deeplab.load({ base: "pascal", quantizationBytes: 2 });
+    console.log("PREDICTION: Deeplab loaded successfully");
+  } catch (error) {
+    console.error("PREDICTION: error loading deeplab: ", error);
+
+  }
   console.log("PREDICTION: make silhouettes");
   let frontImageSilhouette = await makeSilhouette(frontImageTensor, deepLabV3);
   let sideImageSilhouette = await makeSilhouette(sideImageTensor, deepLabV3);
+  //console.log("PREDICTION: check front img:", frontImageSilhouette);
 
-  frontImageSilhouette = cropAndResize(frontImageSilhouette);
-  sideImageSilhouette = cropAndResize(sideImageSilhouette);
+  frontImageSilhouette = cropAndResizeSync(frontImageSilhouette);
+  sideImageSilhouette = cropAndResizeSync(sideImageSilhouette);
 
   console.log("PREDICTION: start MNAS...");
   //const MNAS_URL = "./tf_models/jsModels/bmTest/model.json";
   const MNAS_URL = "https://huggingface.co/batmanBinSuparman/bmnet/resolve/main/bmTest/model.json"
   const mnasNet = await tf.loadGraphModel(MNAS_URL);
-  console.log("mnas loaded...");
+  console.log("PREDICTION: mnas loaded...");
 
+  console.log("PREDICTION: check front img:", frontImageSilhouette);
   let combinedSilhouette = tf.concat([frontImageSilhouette, sideImageSilhouette], 1); // (640x960)
   combinedSilhouette = tf.concat(
     [
@@ -89,7 +97,7 @@ export async function predictSizes(
     ]
     , 2).expandDims(0); // add batch dimension
 
-  console.log("mnas inference...");
-  const mnasResult = mnasNet.predict(silhouette).arraySync();
+  console.log("PREDICTION: mnas inference...");
+  const mnasResult = mnasNet.predict(combinedSilhouette).arraySync();
   return mnasResult;
 }
