@@ -1,7 +1,7 @@
 //array to store screen id
 import { drawSkeleton } from "./drawUtils.js";
-import { initFirebase, uploadToFirebase } from "./firebaseUtils.js";
-import { firebaseConfig, TM_URL } from "./env.js";
+//import { initFirebase, uploadToFirebase } from "./firebaseUtils.js";
+import { TM_URL } from "./env.js";
 import {
   setWorkerInstance,
   requestVersion,
@@ -64,6 +64,8 @@ let thigh = 0;
 let currentSize;
 let sizingData;
 let glider;
+
+let makingMeasurementPrediction = false; // use this to ensure that the
 
 const workerCode = `
   // Load external scripts inside a try/catch.
@@ -1001,7 +1003,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   //Camera Scan code
 
-  initFirebase(firebaseConfig);
+  //initFirebase(firebaseConfig);
 
   let stream;
   let detector;
@@ -1062,6 +1064,58 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  async function runMeasurementPrediction() {
+    if (makingMeasurementPrediction){
+      return
+    }
+    makingMeasurementPrediction = true;
+    console.log("PREDICTION: Running  runMeasurementPrediction function");
+
+    let measurements = await predictSizes(
+      analysisState.frontImageTensor,
+      analysisState.sideImageTensor,
+      Math.round(userInfo.height),
+      Math.round(userInfo.weight),
+    );
+    // turn measurements into an update object
+    // let gender = "";
+    //let height = 0;
+    //let weight = 0;
+    //let age = 0;
+    //
+    //let shoulder = 0;
+    //let hip = 0;
+    //let arm = 0;
+    //let leg = 0;
+    //let chest = 0;
+    //let waist = 0;
+    //let torso = 0;
+    //let thigh = 0;
+    // measurement-columns = ['ankle', 'arm-length', 'bicep', 'calf', 'chest', 'forearm', 'hip', 'leg-length', 'shoulder-breadth', 'shoulder-to-crotch', 'thigh', 'waist', 'wrist']
+    // take out the array from the result (which is a [array]) and round
+    // to the nearest 0.5
+    measurements = measurements[0];
+    measurements = measurements.map(num => Math.round(num * 2) / 2);
+    const updates = {
+      "shoulder": measurements[8],
+      "hip": measurements[6],
+      "arm": measurements[1],
+      "leg": measurements[7],
+      "chest": measurements[4],
+      "waist": measurements[11],
+      "torso": measurements[9],
+      "thigh": measurements[10],
+    }
+    // update the user details
+    updateUserInfo(updates);
+    console.log("PREDICTION: Updated User Info:", userInfo);
+    updateMeasurementCards();
+    console.log("PREDICTION: obtained MNAS measurements: ", measurements);
+    // make the `next` button visible
+    CameraScanNext.classList.remove("hidden");
+
+  }
+
   const analysisState = {
     state: "start",
     validSince: null,
@@ -1118,47 +1172,13 @@ document.addEventListener("DOMContentLoaded", () => {
       //const heightCM = 160;
       //const weightKG = 60;
       analysisState.state = "final_state";
-      const measurements = await predictSizes(
-        analysisState.frontImageTensor,
-        analysisState.sideImageTensor,
-        Math.round(userInfo.height),
-        Math.round(userInfo.weight),
-      )
-      // turn measurements into an update object
-      // let gender = "";
-      //let height = 0;
-      //let weight = 0;
-      //let age = 0;
-      //
-      //let shoulder = 0;
-      //let hip = 0;
-      //let arm = 0;
-      //let leg = 0;
-      //let chest = 0;
-      //let waist = 0;
-      //let torso = 0;
-      //let thigh = 0;
-      // measurement-columns = ['ankle', 'arm-length', 'bicep', 'calf', 'chest', 'forearm', 'hip', 'leg-length', 'shoulder-breadth', 'shoulder-to-crotch', 'thigh', 'waist', 'wrist']
-      const updates = {
-        "shoulder": measurements[8],
-        "hip": measurements[6],
-        "arm": measurements[1],
-        "leg": measurements[7],
-        "chest": measurements[4],
-        "waist": measurements[11],
-        "torso": measurements[9],
-        "thigh": measurements[10],
-      }
-      //updateUserInfo
-
-      console.log("PREDICTION: obtained MNAS measurements: ", measurements);
-      // update the user details
-      analysisState.state = "final_state";
+      //analysisState.state = "final_state";
       return;
     } else if (analysisState.state === "final_state") {
       // Completed
       DisplayFeedback("Measurement Process completed!");
       // Example: auto-switch to Fit tab
+      cameraController.deactivateCamera();
       setTimeout(() => {
         // tabFitBtn.click();
         console.log("Switched to Fit tab after detection completed");
@@ -1166,8 +1186,12 @@ document.addEventListener("DOMContentLoaded", () => {
         console.log(camerascanclass2);
         camerascanclass2.classList.remove("hidden");
         console.log(camerascanclass2);
-        cameraController.deactivateCamera();
+        //cameraController.deactivateCamera();
       }, 1000);
+
+      // wait for measurements to be done, then go to the display user
+      // size page
+      runMeasurementPrediction();
       return;
     }
 
