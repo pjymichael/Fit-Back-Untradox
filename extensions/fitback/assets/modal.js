@@ -171,6 +171,7 @@ async function collapsePose(canvas) {
 
 requestVersion();
 const TM_URL = "https://teachablemachine.withgoogle.com/models/bOkXKhLNs/";
+// https://teachablemachine.withgoogle.com/models/9G4kawOo_/
 loadModel(TM_URL + "model.json", TM_URL + "metadata.json");
 
 let userInfo = {
@@ -1130,6 +1131,25 @@ document.addEventListener("DOMContentLoaded", () => {
   let isClassifying = false;
 
   async function analysePose(pose, ctx) {
+    // const importantPoints = [
+    //   "nose",
+    //   "left_eye",
+    //   "right_eye",
+    //   "left_ear",
+    //   "right_ear",
+    //   "left_shoulder",
+    //   "right_shoulder",
+    //   "left_elbow",
+    //   "right_elbow",
+    //   "left_wrist",
+    //   "right_wrist",
+    //   "left_hip",
+    //   "right_hip",
+    //   "left_knee",
+    //   "right_knee",
+    //   "left_ankle",
+    //   "right_ankle",
+    // ];
     const importantPoints = ["left_shoulder", "right_shoulder"];
     const filteredKeypoints = pose.keypoints.filter((kp) =>
       importantPoints.includes(kp.name),
