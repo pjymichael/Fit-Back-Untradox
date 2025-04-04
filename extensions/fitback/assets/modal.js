@@ -1,7 +1,7 @@
 //array to store screen id
 import { drawSkeleton } from "./drawUtils.js";
 //import { initFirebase, uploadToFirebase } from "./firebaseUtils.js";
-import { TM_URL } from "./env.js";
+//import { TM_URL } from "./env.js";
 import {
   setWorkerInstance,
   requestVersion,
@@ -170,7 +170,7 @@ async function collapsePose(canvas) {
 }
 
 requestVersion();
-
+const TM_URL = "https://teachablemachine.withgoogle.com/models/bOkXKhLNs/";
 loadModel(TM_URL + "model.json", TM_URL + "metadata.json");
 
 let userInfo = {
