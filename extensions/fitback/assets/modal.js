@@ -181,7 +181,7 @@ async function collapsePose(canvas) {
 
 requestVersion();
 // const TM_URL = "https://teachablemachine.withgoogle.com/models/bOkXKhLNs/";
-const TM_URL = "https://teachablemachine.withgoogle.com/models/GxSii1Iz4/"; // final model
+const TM_URL = "https://teachablemachine.withgoogle.com/models/l5GZBzm0W/";
 
 loadModel(TM_URL + "model.json", TM_URL + "metadata.json");
 
@@ -424,7 +424,6 @@ document.addEventListener("DOMContentLoaded", () => {
       container.appendChild(card);
     });
   };
-
 
   const onboardScreensArray = [
     onboardWelcome,
@@ -978,116 +977,116 @@ document.addEventListener("DOMContentLoaded", () => {
     if (isInsideFrame) {
       if (!analysisState.validSince) {
         analysisState.validSince = now;
-      if (now - analysisState.validSince >= REQUIRED_TIME) {
-        switch (analysisState.state) {
-          case "start":
-            console.log("Transitioning to detecting_one");
-            analysisState.state = "detecting_one";
-            analysisState.validSince = now
-            DisplayFeedback("Detecting your pose...");
-            break;
-–
-          case "detecting_one":
-            if (isClassifying) break;
-            isClassifying = true;
-            const result1 = await collapsePose(canvas);
-            if (
-              result1.poseName &&
-              result1.poseName.toLowerCase() === "front-view".toLowerCase() &&
-              result1.poseConfidence > 0.7
-            ) {
-              DisplayFeedback("Pose Detected, taking photo");
-              analysisState.state = "ready_one";
+        if (now - analysisState.validSince >= REQUIRED_TIME) {
+          switch (analysisState.state) {
+            case "start":
+              console.log("Transitioning to detecting_one");
+              analysisState.state = "detecting_one";
               analysisState.validSince = now;
-            } else {
-              console.log("result1", result1);
-              DisplayFeedback("Please match the silhouette with your body");
-              isClassifying = false;
-              return;
-            }
-            isClassifying = false;
-            break;
-
-          case "ready_one":
-            DisplayFeedback("Taking front photo...");
-            returnPhotoRef("front", (err, result) => {
-              if (err) {
-                console.error("Capture Photo method failed", err);
-              } else {
-                console.log("Saved front image:", result);
-                analysisState.imageBlobArray.push(result);
-                analysisState.state = "start_2";
+              DisplayFeedback("Detecting your pose...");
+              break;
+            case "detecting_one":
+              if (isClassifying) break;
+              isClassifying = true;
+              const result1 = await collapsePose(canvas);
+              if (
+                result1.poseName &&
+                result1.poseName.toLowerCase() === "front-view".toLowerCase() &&
+                result1.poseConfidence > 0.7
+              ) {
+                DisplayFeedback("Pose Detected, taking photo");
+                analysisState.state = "ready_one";
                 analysisState.validSince = now;
-                analysisState.frontImageTensor = result.tensor;
-                DisplayFeedback("Please rotate 90° to the right");
+              } else {
+                console.log("result1", result1);
+                DisplayFeedback("Please match the silhouette with your body");
+                isClassifying = false;
+                return;
               }
-            });
-            break;
+              isClassifying = false;
+              break;
 
-          case "start_2":
-            analysisState.state = "detecting_two";
-            analysisState.validSince = now;
-            updateSilhouette("start_2");
-            // We'll rely on the user physically rotating
-            break;
+            case "ready_one":
+              DisplayFeedback("Taking front photo...");
+              returnPhotoRef("front", (err, result) => {
+                if (err) {
+                  console.error("Capture Photo method failed", err);
+                } else {
+                  console.log("Saved front image:", result);
+                  analysisState.imageBlobArray.push(result);
+                  analysisState.state = "start_2";
+                  analysisState.validSince = now;
+                  analysisState.frontImageTensor = result.tensor;
+                  DisplayFeedback("Please rotate 90° to the right");
+                }
+              });
+              break;
 
-          case "detecting_two":
-            if (isClassifying) break;
-            isClassifying = true;
-            const result2 = await collapsePose(canvas);
-            if (
-              result2.poseName === "side-view" &&
-              result2.poseConfidence > 0.7
-            ) {
-              DisplayFeedback("Pose Detected, taking photo");
-              analysisState.state = "ready_two";
+            case "start_2":
+              analysisState.state = "detecting_two";
               analysisState.validSince = now;
-            } else {
-              DisplayFeedback("Please match the silhouette with your body");
-              isClassifying = false;
-              return;
-            }
-            isClassifying = false;
-            break;
+              updateSilhouette("start_2");
+              // We'll rely on the user physically rotating
+              break;
 
-          case "ready_two":
-            DisplayFeedback("Taking side photo...");
-            returnPhotoRef("side", (err, result) => {
-              if (err) {
-                console.error("Capture Photo method failed", err);
-              } else {
-                console.log("Saved side image:", result);
-                analysisState.imageBlobArray.push(result);
-                analysisState.state = "upload_photo";
+            case "detecting_two":
+              if (isClassifying) break;
+              isClassifying = true;
+              const result2 = await collapsePose(canvas);
+              if (
+                result2.poseName === "side-view" &&
+                result2.poseConfidence > 0.7
+              ) {
+                DisplayFeedback("Pose Detected, taking photo");
+                analysisState.state = "ready_two";
                 analysisState.validSince = now;
-                analysisState.sideImageTensor = result.tensor;
-                DisplayFeedback("Ready to upload photos...");
+              } else {
+                DisplayFeedback("Please match the silhouette with your body");
+                isClassifying = false;
+                return;
               }
-            });
-            break;
+              isClassifying = false;
+              break;
 
-          default:
-            // If state is unrecognized, reset to “start”
-            analysisState.state = "start";
-            analysisState.validSince = now;
-            DisplayFeedback("Resetting detection. Please stand still.");
-            break;
+            case "ready_two":
+              DisplayFeedback("Taking side photo...");
+              returnPhotoRef("side", (err, result) => {
+                if (err) {
+                  console.error("Capture Photo method failed", err);
+                } else {
+                  console.log("Saved side image:", result);
+                  analysisState.imageBlobArray.push(result);
+                  analysisState.state = "upload_photo";
+                  analysisState.validSince = now;
+                  analysisState.sideImageTensor = result.tensor;
+                  DisplayFeedback("Ready to upload photos...");
+                }
+              });
+              break;
+
+            default:
+              // If state is unrecognized, reset to “start”
+              analysisState.state = "start";
+              analysisState.validSince = now;
+              DisplayFeedback("Resetting detection. Please stand still.");
+              break;
+          }
+        } else {
+          // Not enough consecutive frames yet
+          const msg = "Detection in progress, remain still...";
+          if (analysisState.lastFeedback !== msg) {
+            DisplayFeedback(msg);
+            analysisState.lastFeedback = msg;
+          }
         }
       } else {
-        // Not enough consecutive frames yet
-        const msg = "Detection in progress, remain still...";
-        if (analysisState.lastFeedback !== msg) {
-          DisplayFeedback(msg);
-          analysisState.lastFeedback = msg;
-        }
-      }
-    } else {
-      // If we are in “start” but not inside the frame
-      if (analysisState.state === "start") {
-        const msg = "Please match the silhouette with your body";
-        if (analysisState.lastFeedback !== msg) {
-          DisplayFeedback(msg);
-          analysisState.lastFeedback = msg;
+        // If we are in “start” but not inside the frame
+        if (analysisState.state === "start") {
+          const msg = "Please match the silhouette with your body";
+          if (analysisState.lastFeedback !== msg) {
+            DisplayFeedback(msg);
+            analysisState.lastFeedback = msg;
+          }
         }
       }
     }
@@ -1129,6 +1128,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 const showElement = (ele) => {
   ele.classList.add("visible");
+
   ele.classList.remove("hidden");
 };
 
@@ -1255,9 +1255,11 @@ function setupOnboardingNavigation(
         screens.forEach((screen) => hideElement(screen));
         showElement(screens[index + 1]);
         cameraController.startCamera();
+        document.querySelector(".modal-content").classList.add("cameraScan");
       });
     } else if (btn === nextBtns[5]) {
       btn.addEventListener("click", () => {
+        document.querySelector(".modal-content").classList.remove("cameraScan");
         screens.forEach((screen) => hideElement(screen));
         showElement(screens[index + 1]);
 

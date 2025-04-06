@@ -387,7 +387,8 @@ h5 {
 /* camera scan code */
 #user-feedback {
   margin: 0 !important;
-  font-size: 2rem !important;
+  font-size: 5rem !important;
+  text-align: center !important;
   font-weight: bold !important;
 }
 
@@ -445,4 +446,33 @@ h5 {
   font-size: 3rem !important;
   font-weight: bold !important;
   text-align: center !important;
+}
+
+/* Make the entire modal wider and taller when scanning */
+/* Add this at the bottom of modal.css or in a new CSS file */
+#fitback-recommendation #CameraScan.expanded-camera-scan {
+  /* Example approach #1: Make the container occupy more space */
+  width: 40vw !important;
+  height: auto !important; /* Adjust height as needed */
+  max-width: 40vw !important;
+  max-height: 40vh !important;
+  margin: 0 auto !important; /* Center it */
+  padding: 1rem !important; /* Add some padding */
+  /* If you want it centered on screen */
+  position: relative; /* or absolute, depending on your layout */
+  /* 
+     If you prefer a simpler “zoom in” effect, 
+     you could do something like: transform: scale(1.3); 
+     transform-origin: top center; 
+  */
+}
+
+/* If you need bigger text, buttons, etc. inside the CameraScan: */
+#fitback-recommendation #CameraScan.expanded-camera-scan * {
+  font-size: 1.25rem;
+  /* Adjust as needed */
+}
+
+.modal-content.cameraScan {
+  width: 40vw;
 }

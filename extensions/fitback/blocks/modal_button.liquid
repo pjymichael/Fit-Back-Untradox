@@ -10,7 +10,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/deeplab"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection"></script>
     <div id="modal-overlay" class="modal-overlay hidden">
-        <div class="modal-content">
+        <div class="modal-content" id="modal-content">
             <div id="onboard-welcome" class="onboard-welcome">
                 <h1>Find clothing of the perfect size for you in a few simple steps:</p>
                 <div class="introduction">
@@ -92,7 +92,7 @@
                     <p class="btn-primary__text">Start Scan</p>
                 </button>
             </div>
-            <div id="CameraScan" class="hidden">
+            <div id="CameraScan" class="hidden expanded-camera-scan">
                 <div id="CameraScan-class1"  >
                 <p id="user-feedback">Camera-Scan Front</h1>
                 <div class="camera-container">
