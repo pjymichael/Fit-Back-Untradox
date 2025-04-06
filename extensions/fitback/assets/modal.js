@@ -1,7 +1,5 @@
 //array to store screen id
 import { drawSkeleton } from "./drawUtils.js";
-//import { initFirebase, uploadToFirebase } from "./firebaseUtils.js";
-//import { TM_URL } from "./env.js";
 import {
   setWorkerInstance,
   requestVersion,
@@ -11,42 +9,6 @@ import {
 import { initializePoseDetector, estimatePoses } from "./poseDetector.js";
 import { predictSizes } from "./predictSize.js?v=789";
 
-/*
-//TODO: REMOVE AFTER CHECKING THAT THE MODEL CAN BE Loaded
-console.log("PREDICTION: Trying to load deeplab model");
-console.log("PREDICTION: tfjs version: ", tf.version.tfjs);
-try {
-  const testModel = await deeplab.load({ base: "pascal", quantizationBytes: 2 });
-  //const MNAS_URL = "https://huggingface.co/batmanBinSuparman/bmnet/resolve/main/bmTest/model.json";
-  //const model = await tf.loadGraphModel(MNAS_URL); // Change to your actual model path
-  //statusElement.textContent = "Model loaded successfully!";
-  console.log("PREDICTION: Model loaded:", testModel);
-} catch (error) {
-  //statusElement.textContent = "Failed to load model.";
-  console.error("PREDICTION: Error loading model:", error);
-}
-
-// try to load image and make predictions
-const imgTest = new Image();
-imgTest.crossOrigin = "anonymous";
-imgTest.src = "https://dm0qx8t0i9gc9.cloudfront.net/watermarks/image/rDtN98Qoishumwih/trendy-guy-standing-agaisnt-the-wall-and-smiling_HFQ-W4t6Bj_SB_PM.jpg";
-await new Promise((resolve) => {
-  imgTest.onload = resolve;
-});
-
-console.log("PREDICTION: Test image loaded");
-
-const testTensor = tf.browser.fromPixels(imgTest, 3);
-console.log("PREDICTION: Test tensor loaded. Starting prediction on:", testTensor);
-
-const res = await predictSizes(testTensor, testTensor, 160, 60);
-console.log("PREDICTION: measurements done: ", res);
-*/
-
-
-
-
-//variable storage for user
 // Declare variables at the top of your script
 let gender = "";
 let height = 0;
@@ -68,75 +30,119 @@ let glider;
 let makingMeasurementPrediction = false; // use this to ensure that the
 
 const workerCode = `
-  // Load external scripts inside a try/catch.
-  try {
-    importScripts("https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.3.1/dist/tf.min.js");
-    importScripts("https://cdn.jsdelivr.net/npm/@teachablemachine/pose@0.8/dist/teachablemachine-pose.min.js");
-    console.log("TF1 Worker: External scripts loaded. TFJS version:", tf.version.tfjs);
+// Load external scripts inside a try/catch.
+try {
+  importScripts(
+    "https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.3.1/dist/tf.min.js",
+    "https://cdn.jsdelivr.net/npm/@teachablemachine/pose@0.8/dist/teachablemachine-pose.min.js"
+  );
+  console.log(
+    "TF1 Worker: External scripts loaded. TFJS version:",
+    tf.version.tfjs
+  );
+  // Confirm TFJS version to main thread
+  self.postMessage({ type: "version", version: tf.version.tfjs });
+} catch (e) {
+  console.error("Error loading external scripts:", e);
+  // Notify main thread of load failure
+  self.postMessage({
+    type: "error",
+    errorMessage:"Failed to load external scripts." + e.toString(),
+  });
+  // You may want to return here if scripts are critical
+}
+
+// Confirm worker loaded.
+self.postMessage({
+  type: "info",
+  message: "TF1 Worker: Loaded successfully with external scripts!",
+});
+
+// Variable to store the loaded model.
+let tmModel = null;
+
+// Listen for messages from the main thread.
+self.onmessage = async (e) => {
+  const { command, data } = e.data;
+
+  switch (command) {
+    case "version":
+      // Return the TFJS version
       self.postMessage({ type: "version", version: tf.version.tfjs });
-  } catch(e) {
-    console.error("Error loading external scripts:", e);
-    self.postMessage("Failed to load external scripts.");
-  }
+      break;
 
-  // Confirm worker loaded.
-  self.postMessage("TF1 Worker: Loaded successfully with external scripts!");
-
-  // Variable to store the loaded model.
-  let tmModel = null;
-
-  // Listen for messages from the main thread.
-  self.onmessage = async (e) => {
-    const { command, data } = e.data;
-
-    // Command: "version" – Return the TFJS version.
-    if (command === "version") {
-      self.postMessage({ type: "version", version: tf.version.tfjs });
-    }
-
-    // Command: "LOAD_MODEL" – Load the Teachable Machine pose model.
-    if (command === "LOAD_MODEL") {
+    case "LOAD_MODEL":
+      // Load the Teachable Machine pose model
       try {
         tmModel = await tmPose.load(data.modelURL, data.metadataURL);
         self.postMessage({ type: "model_loaded", success: true });
       } catch (err) {
-        self.postMessage({ type: "model_loaded", success: false, error: err.toString() });
+        self.postMessage({
+          type: "error",
+          errorMessage: "Failed to load model"+err.toString(),
+        });
       }
-    }
+      break;
 
-    // Command: "CLASSIFY_FRAME" – Classify a single frame.
-    if (command === "CLASSIFY_FRAME") {
+    case "CLASSIFY_FRAME":
       if (!tmModel) {
-        self.postMessage({ type: "classification", error: "No model loaded" });
+        // If model not loaded, treat it as an error
+        self.postMessage({
+          type: "error",
+          errorMessage: " No model loaded. Please load a model first. ",
+        });
         return;
       }
       try {
-        const { width, height, buffer } = data; // from main thread
+        const { width, height, buffer } = data;
         const canvas = new OffscreenCanvas(width, height);
         const ctx = canvas.getContext("2d");
 
         // Create an ImageData from the buffer.
-        const imageData = new ImageData(new Uint8ClampedArray(buffer), width, height);
+        const imageData = new ImageData(
+          new Uint8ClampedArray(buffer),
+          width,
+          height
+        );
         ctx.putImageData(imageData, 0, 0);
 
         // Estimate pose and classify.
-        const { pose: tmPoseOutput, posenetOutput } = await tmModel.estimatePose(canvas);
+        const { pose: tmPoseOutput, posenetOutput } =
+          await tmModel.estimatePose(canvas);
         const predictions = await tmModel.predict(posenetOutput);
-        // Find the best prediction.
-        let best = predictions.reduce((a, b) => a.probability > b.probability ? a : b);
 
+        // Find the best prediction
+        const best = predictions.reduce((a, b) =>
+          a.probability > b.probability ? a : b
+        );
+
+        // Post classification success
         self.postMessage({
           type: "classification",
           bestClass: best.className,
           probability: best.probability,
         });
       } catch (err) {
-        self.postMessage({ type: "classification", error: err.toString() });
+        // Post error if classification throws
+        self.postMessage({
+          type: "error",
+          errorMessage: "Classification error:" + err.toString()
+        });
       }
-    }
-  };
-`;
+      break;
 
+    default:
+      // Handle unknown commands
+      self.postMessage({
+        type: "error",
+        errorMessage:"Unknown command: "
+      });
+      break;
+  }
+};
+
+
+`;
 const blob = new Blob([workerCode], { type: "application/javascript" });
 const workerUrl = URL.createObjectURL(blob);
 const tf1Worker = new Worker(workerUrl);
@@ -158,20 +164,25 @@ async function collapsePose(canvas) {
   const ctx = canvas.getContext("2d", { willReadFrequently: true });
   const { width, height } = canvas;
   const imageData = ctx.getImageData(0, 0, width, height);
-  const result = await classifyFrame(width, height, imageData.data.buffer);
-  if (!result || !result.bestClass) {
-    console.error("Worker classification failed, or no result");
+
+  try {
+    const result = await classifyFrame(width, height, imageData.data.buffer);
+    // If we got here, no errors were thrown
+    return {
+      poseName: result.bestClass,
+      poseConfidence: result.probability,
+    };
+  } catch (error) {
+    // If the worker or the classification logic fails:
+    console.error("Error in classification:", error);
     return { poseName: null, poseConfidence: 0 };
   }
-  return {
-    poseName: result.bestClass,
-    poseConfidence: result.probability,
-  };
 }
 
 requestVersion();
-const TM_URL = "https://teachablemachine.withgoogle.com/models/bOkXKhLNs/";
-// https://teachablemachine.withgoogle.com/models/9G4kawOo_/
+// const TM_URL = "https://teachablemachine.withgoogle.com/models/bOkXKhLNs/";
+const TM_URL = "https://teachablemachine.withgoogle.com/models/GxSii1Iz4/"; // final model
+
 loadModel(TM_URL + "model.json", TM_URL + "metadata.json");
 
 let userInfo = {
@@ -414,43 +425,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   };
 
-  // const saveOnboardingUserDetails = (userDetailArray, form) => {
-  //   if (!Array.isArray(userDetailArray)) {
-  //     console.error("Invalid userDetailArray provided. Expected an array.");
-  //     return;
-  //   }
-
-  //   console.log("Saving Onboarding User Details...");
-
-  //   const updates = {};
-
-  //   userDetailArray.forEach((inputEle) => {
-  //     try {
-  //       if (!inputEle || !inputEle.name) {
-  //         throw new Error("Input element missing or has no name attribute");
-  //       }
-
-  //       const value = inputEle.value;
-  //       if (value === "" || value === undefined) {
-  //         console.warn(`Empty value for input with name "${inputEle.name}"`);
-  //         return;
-  //       }
-
-  //       updates[inputEle.name] = value;
-  //     } catch (error) {
-  //       console.error(
-  //         "Error processing onboarding input element:",
-  //         error,
-  //         inputEle,
-  //       );
-  //     }
-  //   });
-
-  //   updateUserInfo(updates);
-  //   console.log("Onboarding Details saved:", userInfo);
-  // };
-
-  //store as array
 
   const onboardScreensArray = [
     onboardWelcome,
@@ -572,239 +546,6 @@ document.addEventListener("DOMContentLoaded", () => {
     userInfo, // only to pass values to saveProfileMeasurementDetails
     userDetailArray, // only to pass values to saveProfileMeasurementDetails
   );
-
-  //onboarding screen navigating
-  //setup listeners to hide and show onboard screens
-  // onboardNextBtnsArray.forEach((btn, index) => {
-  //   if (btn == onboardCameraPositionNext) {
-  //     btn.addEventListener("click", () => {
-  //       onboardScreensArray.forEach((screen) => hideElement(screen));
-  //     });
-  //   }
-
-  //   if (btn) {
-  //     // Ensure button exists
-  //     if (btn == onboardUserInputNext) {
-  //       // special rule for form validation
-  //       btn.addEventListener("click", () => {
-  //         // Check if the form is valid
-  //         if (userDetailForm.checkValidity()) {
-  //           saveOnboardingUserDetails(userDetailArray, userDetailForm);
-  //           onboardScreensArray.forEach((screen) => hideElement(screen));
-  //           // Show next screen
-  //           showElement(onboardScreensArray[index + 1]);
-  //         } else {
-  //           // Trigger native validation messages
-  //           userDetailForm.reportValidity();
-  //           console.error("Form is invalid. Please correct the errors.");
-  //         }
-  //       });
-  //     } else {
-  //       btn.addEventListener("click", () => {
-  //         // Hide all screens
-  //         onboardScreensArray.forEach((screen) => hideElement(screen));
-
-  //         // Show next screen
-  //         showElement(onboardScreensArray[index + 1]);
-
-  //         //init glider here
-  //         if (index + 1 == 5) {
-  //           console.log("initing glider");
-  //           const gliderElement = document.querySelector(".glider");
-  //           gliderElement.innerHTML = ""; // Clear any existing slides
-
-  //           sizes.forEach((size, index) => {
-  //             const slide = document.createElement("div");
-  //             slide.classList.add("slide");
-  //             slide.setAttribute("data-slide", index + 1);
-  //             slide.setAttribute("tabindex", "0");
-  //             slide.innerHTML = `<h1>${size.toUpperCase()}</h1>`;
-  //             gliderElement.appendChild(slide);
-  //           });
-
-  //           glider = new Glider(document.querySelector(".glider"), {
-  //             slidesToShow: 1,
-  //             dots: ".dots",
-  //             draggable: true,
-  //             scrollLock: true,
-  //             rewind: true,
-  //             arrows: {
-  //               prev: ".glider-prev",
-  //               next: ".glider-next",
-  //             },
-  //           });
-
-  //           // console.log(glider)
-  //           var numberOfSliders =
-  //             document.querySelectorAll(".glider-slide").length;
-
-  //           glider.refresh();
-
-  //           function getPreviousSlide(currentSlide) {
-  //             if (currentSlide === 1) {
-  //               return numberOfSliders;
-  //             } else {
-  //               return currentSlide - 1;
-  //             }
-  //           }
-
-  //           function goToPreviousSlide(currentSlide) {
-  //             var previousSlide = getPreviousSlide(currentSlide);
-  //             var imageContent = document.querySelector(
-  //               `.glider-slide:nth-of-type(${previousSlide})`,
-  //             );
-  //           }
-
-  //           function getNextSlide(currentSlide) {
-  //             if (currentSlide === numberOfSliders) {
-  //               return 1;
-  //             } else {
-  //               return currentSlide + 1;
-  //             }
-  //           }
-
-  //           function goToNextSlide(currentSlide) {
-  //             var previousSlide = getNextSlide(currentSlide);
-  //             var imageContent = document.querySelector(
-  //               `.glider-slide:nth-of-type(${previousSlide})`,
-  //             );
-  //           }
-
-  //           document
-  //             .querySelector(".glider-prev")
-  //             .addEventListener("click", function () {
-  //               var currentSlide = parseInt(
-  //                 document
-  //                   .querySelector(".glider-slide.active")
-  //                   .getAttribute("data-slide"),
-  //               );
-  //               goToPreviousSlide(currentSlide);
-  //             });
-
-  //           document
-  //             .querySelector(".glider-next")
-  //             .addEventListener("click", function () {
-  //               var currentSlide = parseInt(
-  //                 document
-  //                   .querySelector(".glider-slide.active")
-  //                   .getAttribute("data-slide"),
-  //               );
-  //               goToNextSlide(currentSlide);
-  //             });
-
-  //           // Listen for the 'glider-slide-visible' event to know when the slide changes
-  //           document
-  //             .querySelector(".glider")
-  //             .addEventListener("glider-slide-visible", function (event) {
-  //               // event.detail.slide gives the index of the new active slide.
-  //               // This index might start at 0 or 1 based on Glider.js configuration.
-  //               console.log("New active slide is:", event.detail.slide);
-  //               // event.detail.slide is the new active slide's index (assuming 0-based)
-  //               let activeIndex = event.detail.slide;
-  //               let activeSize = sizes[activeIndex]; // For example, "M"
-
-  //               // Retrieve the size range data for the active size
-  //               let currentSizeData = sizingData.sizes[activeSize];
-
-  //               // For each category (e.g., chest, torso, etc.)
-  //               categories.forEach((category) => {
-  //                 // Get the user's measurement for this category (assumes userInfo is kept updated)
-  //                 let userMeasurement = userInfo[category];
-
-  //                 // Get the measurement range for the current size and category
-  //                 let range = currentSizeData[category];
-
-  //                 if (range && userMeasurement) {
-  //                   // Evaluate the fit (e.g., "Too Small", "Just Right", or "Too Big")
-  //                   let fitResult = evaluateFit(userMeasurement, range);
-
-  //                   // Update the corresponding recommendation card's text
-  //                   // Assuming each recommender card has a data attribute matching the category in lowercase.
-  //                   let card = document.querySelector(
-  //                     `.sizing-card[data-category="${category.toLowerCase()}"] p`,
-  //                   );
-  //                   if (card) {
-  //                     card.textContent = fitResult;
-  //                   }
-  //                 }
-  //               });
-  //             });
-  //         }
-  //       });
-  //     }
-  //   }
-
-  //   if (btn == onboardUserInputNext) {
-  //   }
-  // });
-
-  //////////////////////////NAVIGATIONS//////////////////////////
-  // recommendationScreenBtn.forEach((btn, index) => {
-  //   switch (btn) {
-  //     case tabFitBtn:
-  //       btn.addEventListener("click", () => {
-  //         showElement(screenFit);
-  //         hideElement(screenProfile);
-  //         hideElement(screenProfileMeasurementDetails);
-  //         hideElement(screenProfileMeasurementEdit);
-
-  //         tabFitBtn.classList.add("active");
-  //         tabProfileBtn.classList.remove("active");
-  //         glider.refresh();
-  //       });
-
-  //       break;
-
-  //     case tabProfileBtn:
-  //       btn.addEventListener("click", () => {
-  //         showElement(screenProfile);
-  //         showElement(screenProfileMeasurementDetails);
-  //         hideElement(screenFit);
-  //         hideElement(screenProfileMeasurementEdit);
-
-  //         tabProfileBtn.classList.add("active");
-  //         tabFitBtn.classList.remove("active");
-  //       });
-
-  //       break;
-
-  //     case profileEditMeasurementBtn:
-  //       btn.addEventListener("click", () => {
-  //         showElement(screenProfile);
-  //         hideElement(screenFit);
-  //         hideElement(screenProfileMeasurementDetails);
-  //         showElement(screenProfileMeasurementEdit);
-  //       });
-  //       break;
-
-  //     case profileMeasurementManualConfirmChangeBtn:
-  //       btn.addEventListener("click", () => {
-  //         // Check if the form is valid
-  //         // Check if the form is valid
-  //         if (userMeasurementForm.checkValidity()) {
-  //           saveProfileMeasurementDetails(
-  //             measurementInputArray,
-  //             userMeasurementForm,
-  //           );
-  //           showElement(screenProfile);
-  //           showElement(screenProfileMeasurementDetails);
-
-  //           hideElement(screenFit);
-  //           hideElement(screenProfileMeasurementEdit);
-  //         } else {
-  //           // Trigger native validation messages
-  //           userMeasurementForm.reportValidity();
-  //           console.error("Form is invalid. Please correct the errors.");
-  //         }
-  //       });
-  //       break;
-  //   }
-  // });
-  ////////////////////////////////////////////////////
-
-  //////////////////////////Recommender section//////////////////////////
-
-  //initially, run the recommender card constructor function
 
   constructRecommenderCard(categories);
   //Interactivity of recommender card and svg
@@ -1066,8 +807,8 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   async function runMeasurementPrediction() {
-    if (makingMeasurementPrediction){
-      return
+    if (makingMeasurementPrediction) {
+      return;
     }
     makingMeasurementPrediction = true;
     console.log("PREDICTION: Running  runMeasurementPrediction function");
@@ -1096,17 +837,17 @@ document.addEventListener("DOMContentLoaded", () => {
     // take out the array from the result (which is a [array]) and round
     // to the nearest 0.5
     measurements = measurements[0];
-    measurements = measurements.map(num => Math.round(num * 2) / 2);
+    measurements = measurements.map((num) => Math.round(num * 2) / 2);
     const updates = {
-      "shoulder": measurements[8],
-      "hip": measurements[6],
-      "arm": measurements[1],
-      "leg": measurements[7],
-      "chest": measurements[4],
-      "waist": measurements[11],
-      "torso": measurements[9],
-      "thigh": measurements[10],
-    }
+      shoulder: measurements[8],
+      hip: measurements[6],
+      arm: measurements[1],
+      leg: measurements[7],
+      chest: measurements[4],
+      waist: measurements[11],
+      torso: measurements[9],
+      thigh: measurements[10],
+    };
     // update the user details
     updateUserInfo(updates);
     console.log("PREDICTION: Updated User Info:", userInfo);
@@ -1114,7 +855,6 @@ document.addEventListener("DOMContentLoaded", () => {
     console.log("PREDICTION: obtained MNAS measurements: ", measurements);
     // make the `next` button visible
     CameraScanNext.classList.remove("hidden");
-
   }
 
   const analysisState = {
@@ -1131,32 +871,32 @@ document.addEventListener("DOMContentLoaded", () => {
   let isClassifying = false;
 
   async function analysePose(pose, ctx) {
-    // const importantPoints = [
-    //   "nose",
-    //   "left_eye",
-    //   "right_eye",
-    //   "left_ear",
-    //   "right_ear",
-    //   "left_shoulder",
-    //   "right_shoulder",
-    //   "left_elbow",
-    //   "right_elbow",
-    //   "left_wrist",
-    //   "right_wrist",
-    //   "left_hip",
-    //   "right_hip",
-    //   "left_knee",
-    //   "right_knee",
-    //   "left_ankle",
-    //   "right_ankle",
-    // ];
-    const importantPoints = ["left_shoulder", "right_shoulder"];
+    const importantPoints = [
+      // "nose",
+      // "left_eye",
+      // "right_eye",
+      // "left_ear",
+      // "right_ear",
+      "left_shoulder",
+      "right_shoulder",
+      // "left_elbow",
+      // "right_elbow",
+      // "left_wrist",
+      // "right_wrist",
+      // "left_hip",
+      // "right_hip",
+      // "left_knee",
+      // "right_knee",
+      // "left_ankle",
+      // "right_ankle",
+    ];
+    // const importantPoints = ["left_shoulder", "right_shoulder"];
     const filteredKeypoints = pose.keypoints.filter((kp) =>
       importantPoints.includes(kp.name),
     );
 
-    const horizontalPadding = 5;
-    const verticalPadding = 5;
+    const horizontalPadding = 10;
+    const verticalPadding = 10;
     const left = horizontalPadding;
     const right = ctx.canvas.width - horizontalPadding;
     const top = verticalPadding;
@@ -1238,29 +978,29 @@ document.addEventListener("DOMContentLoaded", () => {
     if (isInsideFrame) {
       if (!analysisState.validSince) {
         analysisState.validSince = now;
-      }
-
       if (now - analysisState.validSince >= REQUIRED_TIME) {
         switch (analysisState.state) {
           case "start":
             console.log("Transitioning to detecting_one");
             analysisState.state = "detecting_one";
-            analysisState.validSince = now;
+            analysisState.validSince = now
             DisplayFeedback("Detecting your pose...");
             break;
-
+–
           case "detecting_one":
             if (isClassifying) break;
             isClassifying = true;
             const result1 = await collapsePose(canvas);
             if (
-              result1.poseName === "Front-view" &&
+              result1.poseName &&
+              result1.poseName.toLowerCase() === "front-view".toLowerCase() &&
               result1.poseConfidence > 0.7
             ) {
               DisplayFeedback("Pose Detected, taking photo");
               analysisState.state = "ready_one";
               analysisState.validSince = now;
             } else {
+              console.log("result1", result1);
               DisplayFeedback("Please match the silhouette with your body");
               isClassifying = false;
               return;
@@ -1374,7 +1114,11 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         console.log("Photo captured:", filename);
         if (callback) {
-          callback(null, { filename, blob, tensor: tf.browser.fromPixels(tempCanvas) });
+          callback(null, {
+            filename,
+            blob,
+            tensor: tf.browser.fromPixels(tempCanvas),
+          });
         }
       },
       "image/jpeg",
