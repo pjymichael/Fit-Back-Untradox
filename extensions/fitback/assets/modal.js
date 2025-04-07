@@ -8,6 +8,7 @@ import {
 } from "./workerFunctionsHelper.js";
 import { initializePoseDetector, estimatePoses } from "./poseDetector.js";
 import { predictSizes } from "./predictSize.js?v=789";
+import { PassThrough } from "stream";
 
 // Declare variables at the top of your script
 let gender = "";
@@ -870,30 +871,58 @@ document.addEventListener("DOMContentLoaded", () => {
   let isClassifying = false;
 
   async function analysePose(pose, ctx) {
-    const importantPoints = [
-      // "nose",
-      // "left_eye",
-      // "right_eye",
-      // "left_ear",
-      // "right_ear",
+    const headPoints = [
+      "nose",
+      "left_eye",
+      "right_eye",
+      "left_ear",
+      "right_ear",
+    ];
+    const bodyPoints = [
       "left_shoulder",
       "right_shoulder",
-      // "left_elbow",
-      // "right_elbow",
-      // "left_wrist",
-      // "right_wrist",
-      // "left_hip",
-      // "right_hip",
-      // "left_knee",
-      // "right_knee",
-      // "left_ankle",
-      // "right_ankle",
+      "left_elbow",
+      "right_elbow",
+      "left_wrist",
+      "right_wrist",
+      "left_hip",
+      "right_hip",
+      "left_knee",
+      "right_knee",
+      "left_ankle",
+      "right_ankle",
     ];
-    // const importantPoints = ["left_shoulder", "right_shoulder"];
-    const filteredKeypoints = pose.keypoints.filter((kp) =>
-      importantPoints.includes(kp.name),
+
+    // Set different confidence thresholds
+    const bodyMinConfidence = 0.5;
+    const headMinConfidence = 0.4;
+
+    // Filter keypoints by confidence and name separately for head and body
+    const confidentHeadKeypoints = pose.keypoints.filter(
+      (kp) => headPoints.includes(kp.name) && kp.score > headMinConfidence,
     );
 
+    const confidentBodyKeypoints = pose.keypoints.filter(
+      (kp) => bodyPoints.includes(kp.name) && kp.score > bodyMinConfidence,
+    );
+
+    // Union of the keypoints to be used for position checks
+    const filteredKeypoints = [
+      ...confidentHeadKeypoints,
+      ...confidentBodyKeypoints,
+    ];
+
+    // Check that every body keypoint is present
+    const allBodyPresent = bodyPoints.every((point) =>
+      confidentBodyKeypoints.some((kp) => kp.name === point),
+    );
+
+    // Check that at least one head keypoint is present
+    const isHead = headPoints.some((point) =>
+      confidentHeadKeypoints.some((kp) => kp.name === point),
+    );
+
+    // Define padding boundaries
     const horizontalPadding = 10;
     const verticalPadding = 10;
     const left = horizontalPadding;
@@ -901,37 +930,50 @@ document.addEventListener("DOMContentLoaded", () => {
     const top = verticalPadding;
     const bottom = ctx.canvas.height - verticalPadding;
 
-    // Because the canvas is mirrored, x = ctx.canvas.width - kp.x
+    // Because the canvas is mirrored, adjust x coordinate accordingly
     const pointsOutsidePadding = filteredKeypoints.filter((kp) => {
       const x = ctx.canvas.width - kp.x;
       const y = kp.y;
       return x < left || x > right || y < top || y > bottom;
     });
-    const isInsideFrame = pointsOutsidePadding.length === 0;
-    const now = Date.now();
 
-    // If we are in “upload_photo” state, just upload to firebase
+    // The final check: all body keypoints must be present, at least one head keypoint present,
+    // and no keypoint should be outside the padded boundaries.
+    const isInsideFrame =
+      pointsOutsidePadding.length === 0 && allBodyPresent && isHead;
+
+    // console.log(
+    //   "confident head keypoints:",
+    //   confidentHeadKeypoints.length,
+    //   "confident body keypoints:",
+    //   confidentBodyKeypoints.length,
+    //   "total filtered keypoints:",
+    //   filteredKeypoints.length,
+    //   "points outside padding:",
+    //   pointsOutsidePadding.length,
+    //   "all body points present:",
+    //   allBodyPresent,
+    //   "at least one head point present:",
+    //   isHead,
+    //   "is inside frame:",
+    //   isInsideFrame,
+    // );
+
+    if (!allBodyPresent || !isHead) {
+      console.log("Keypoints details:", {
+        head: confidentHeadKeypoints,
+        body: confidentBodyKeypoints,
+      });
+    }
+
+    const now = Date.now();
 
     // analysisState.state = "final_state"; // debugging statement
     if (analysisState.state === "upload_photo") {
       //DisplayFeedback("Uploading photos to firebase...");
       DisplayFeedback("Predicting measurements...");
       updateSilhouette("disable");
-
-      // REPLACE update to firebase with running prediction model
-      //uploadToFirebase(analysisState, (err, results) => {
-      //  if (err) {
-      //    console.error("Upload failed:", err);
-      //  } else {
-      //    console.log("Upload completed, download URLs:", results);
-      //    analysisState.state = "final_state";
-      //    DisplayFeedback("Photo upload completed successfully.");
-      //  }
-      //});
-      //const heightCM = 160;
-      //const weightKG = 60;
       analysisState.state = "final_state";
-      //analysisState.state = "final_state";
       return;
     } else if (analysisState.state === "final_state") {
       // Completed
@@ -954,32 +996,165 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    // If user is out of frame and we are mid-flow
-    if (!isInsideFrame && analysisState.state !== "start") {
-      if (analysisState.imageBlobArray.length === 0) {
-        analysisState.state = "detecting_one";
-      } else if (analysisState.imageBlobArray.length === 1) {
-        analysisState.state = "detecting_two";
-      }
-      analysisState.validSince = null;
-      const msg = "Please stand inside the frame";
-      if (analysisState.lastFeedback !== msg) {
-        DisplayFeedback(msg);
-        analysisState.lastFeedback = msg;
-      }
-      return;
-    }
-
-    // Show the silhouette (30% opacity, front or side)
-    updateSilhouette("start");
+    // move this to the else condition
+    // if (!isInsideFrame && analysisState.state !== "start") {
+    //   if (analysisState.imageBlobArray.length === 0) {
+    //     analysisState.state = "detecting_one";
+    //   } else if (analysisState.imageBlobArray.length === 1) {
+    //     analysisState.state = "detecting_two";
+    //   }
+    //   analysisState.validSince = null;
+    //   const msg = "Please stand inside the frame";
+    //   if (analysisState.lastFeedback !== msg) {
+    //     DisplayFeedback(msg);
+    //     analysisState.lastFeedback = msg;
+    //   }
+    //   return;
+    // }
 
     // If inside the frame, increment time. Once we’re steady for REQUIRED_TIME, do a new state action
     if (isInsideFrame) {
       if (!analysisState.validSince) {
         analysisState.validSince = now;
+      }
+      if (now - analysisState.validSince >= REQUIRED_TIME) {
+        switch (analysisState.state) {
+          case "start":
+            updateSilhouette("start");
+            console.log("Transitioning to detecting_one");
+            analysisState.state = "detecting_one";
+            analysisState.validSince = now;
+            DisplayFeedback("Detecting your pose...");
+            break;
+          case "detecting_one":
+            if (isClassifying) break;
+            isClassifying = true;
+            const result1 = await collapsePose(canvas);
+            if (
+              result1.poseName &&
+              result1.poseName.toLowerCase() === "front-view".toLowerCase() &&
+              result1.poseConfidence > 0.7
+            ) {
+              DisplayFeedback("Pose Detected, taking photo");
+              analysisState.state = "ready_one";
+              analysisState.validSince = now;
+            } else {
+              console.log("result1", result1);
+              DisplayFeedback("Please match the silhouette with your body");
+              isClassifying = false;
+              return;
+            }
+            isClassifying = false;
+            break;
+
+          case "ready_one":
+            DisplayFeedback("Taking front photo...");
+            returnPhotoRef("front", (err, result) => {
+              if (err) {
+                console.error("Capture Photo method failed", err);
+              } else {
+                console.log("Saved front image:", result);
+                analysisState.imageBlobArray.push(result);
+                analysisState.state = "start_2";
+                analysisState.validSince = now;
+                analysisState.frontImageTensor = result.tensor;
+              }
+            });
+            break;
+
+          case "start_2":
+            analysisState.state = "detecting_two";
+            DisplayFeedback("Please rotate 90° to your left");
+            analysisState.validSince = now;
+            updateSilhouette("start_2");
+            // We'll rely on the user physically rotating
+            break;
+
+          case "detecting_two":
+            if (isClassifying) break;
+            isClassifying = true;
+            const result2 = await collapsePose(canvas);
+            if (
+              result2.poseName === "side-view" &&
+              result2.poseConfidence > 0.7
+            ) {
+              DisplayFeedback("Pose Detected, taking photo");
+              analysisState.state = "ready_two";
+              analysisState.validSince = now;
+            } else {
+              DisplayFeedback("Please match the silhouette with your body");
+              isClassifying = false;
+              return;
+            }
+            isClassifying = false;
+            break;
+
+          case "ready_two":
+            DisplayFeedback("Taking side photo...");
+            returnPhotoRef("side", (err, result) => {
+              if (err) {
+                console.error("Capture Photo method failed", err);
+              } else {
+                console.log("Saved side image:", result);
+                analysisState.imageBlobArray.push(result);
+                analysisState.state = "upload_photo";
+                analysisState.validSince = now;
+                analysisState.sideImageTensor = result.tensor;
+                DisplayFeedback("Ready to upload photos...");
+              }
+            });
+            break;
+
+          default:
+            // If state is unrecognized, reset to “start”
+            // deadcode will never happen
+            analysisState.state = "start";
+            analysisState.validSince = now;
+            DisplayFeedback("Resetting detection. Please stand still.");
+            break;
+        }
+      } else {
+        // Not enough consecutive frames yet
+        const msg = "Detection in progress, remain still...";
+        if (analysisState.lastFeedback !== msg) {
+          DisplayFeedback(msg);
+          analysisState.lastFeedback = msg;
+        }
+      }
+    } else {
+      if (analysisState.imageBlobArray.length === 0) {
+        if (analysisState.state != "start") {
+          analysisState.state = "detecting_one";
+        }
+      } else if (analysisState.imageBlobArray.length === 1) {
+        // checking for side pose
+      }
+
+      // If we are in “start” but not inside the frame
+      if (analysisState.state === "start") {
+        const msg = "Please match the silhouette with your body";
+        //
+        if (analysisState.lastFeedback !== msg) {
+          DisplayFeedback(msg);
+          analysisState.lastFeedback = msg;
+        }
+      }
+    }
+    // add the shit here
+    if (analysisState.imageBlobArray.length == 0) {
+      if (!isInsideFrame) {
+        console.log("Front pose but not inside frame");
+        analysisState.state = "detecting_one";
+        analysisState.validSince = null;
+        DisplayFeedback("Please stand inside the frame");
+      } else {
+        if (!analysisState.validSince) {
+          analysisState.validSince = now;
+        }
         if (now - analysisState.validSince >= REQUIRED_TIME) {
           switch (analysisState.state) {
             case "start":
+              updateSilhouette("start");
               console.log("Transitioning to detecting_one");
               analysisState.state = "detecting_one";
               analysisState.validSince = now;
@@ -1017,13 +1192,13 @@ document.addEventListener("DOMContentLoaded", () => {
                   analysisState.state = "start_2";
                   analysisState.validSince = now;
                   analysisState.frontImageTensor = result.tensor;
-                  DisplayFeedback("Please rotate 90° to the right");
                 }
               });
               break;
 
             case "start_2":
               analysisState.state = "detecting_two";
+              DisplayFeedback("Please rotate 90° to your left");
               analysisState.validSince = now;
               updateSilhouette("start_2");
               // We'll rely on the user physically rotating
@@ -1066,31 +1241,132 @@ document.addEventListener("DOMContentLoaded", () => {
 
             default:
               // If state is unrecognized, reset to “start”
+              // deadcode will never happen
               analysisState.state = "start";
               analysisState.validSince = now;
               DisplayFeedback("Resetting detection. Please stand still.");
               break;
           }
         } else {
-          // Not enough consecutive frames yet
-          const msg = "Detection in progress, remain still...";
-          if (analysisState.lastFeedback !== msg) {
-            DisplayFeedback(msg);
-            analysisState.lastFeedback = msg;
-          }
-        }
-      } else {
-        // If we are in “start” but not inside the frame
-        if (analysisState.state === "start") {
-          const msg = "Please match the silhouette with your body";
-          if (analysisState.lastFeedback !== msg) {
-            DisplayFeedback(msg);
-            analysisState.lastFeedback = msg;
-          }
+          DisplayFeedback("Detection in progress, remain still...");
         }
       }
+    } else if (analysisState.imageBlobArray.length == 1) {
+      // instead of 1 have something else to calculate inside frame
+      if (!isInsideFrame) {
+        console.log("Front pose but not inside frame");
+        analysisState.state = "detecting_one";
+        analysisState.validSince = null;
+        DisplayFeedback("Please stand inside the frame");
+      } else {
+        if (!analysisState.validSince) {
+          analysisState.validSince = now;
+        }
+        if (now - analysisState.validSince >= REQUIRED_TIME) {
+          switch (analysisState.state) {
+            case "start":
+              updateSilhouette("start");
+              console.log("Transitioning to detecting_one");
+              analysisState.state = "detecting_one";
+              analysisState.validSince = now;
+              DisplayFeedback("Detecting your pose...");
+              break;
+            case "detecting_one":
+              if (isClassifying) break;
+              isClassifying = true;
+              const result1 = await collapsePose(canvas);
+              if (
+                result1.poseName &&
+                result1.poseName.toLowerCase() === "front-view".toLowerCase() &&
+                result1.poseConfidence > 0.7
+              ) {
+                DisplayFeedback("Pose Detected, taking photo");
+                analysisState.state = "ready_one";
+                analysisState.validSince = now;
+              } else {
+                console.log("result1", result1);
+                DisplayFeedback("Please match the silhouette with your body");
+                isClassifying = false;
+                return;
+              }
+              isClassifying = false;
+              break;
+
+            case "ready_one":
+              DisplayFeedback("Taking front photo...");
+              returnPhotoRef("front", (err, result) => {
+                if (err) {
+                  console.error("Capture Photo method failed", err);
+                } else {
+                  console.log("Saved front image:", result);
+                  analysisState.imageBlobArray.push(result);
+                  analysisState.state = "start_2";
+                  analysisState.validSince = now;
+                  analysisState.frontImageTensor = result.tensor;
+                }
+              });
+              break;
+
+            case "start_2":
+              analysisState.state = "detecting_two";
+              DisplayFeedback("Please rotate 90° to your left");
+              analysisState.validSince = now;
+              updateSilhouette("start_2");
+              // We'll rely on the user physically rotating
+              break;
+
+            case "detecting_two":
+              if (isClassifying) break;
+              isClassifying = true;
+              const result2 = await collapsePose(canvas);
+              if (
+                result2.poseName === "side-view" &&
+                result2.poseConfidence > 0.7
+              ) {
+                DisplayFeedback("Pose Detected, taking photo");
+                analysisState.state = "ready_two";
+                analysisState.validSince = now;
+              } else {
+                DisplayFeedback("Please match the silhouette with your body");
+                isClassifying = false;
+                return;
+              }
+              isClassifying = false;
+              break;
+
+            case "ready_two":
+              DisplayFeedback("Taking side photo...");
+              returnPhotoRef("side", (err, result) => {
+                if (err) {
+                  console.error("Capture Photo method failed", err);
+                } else {
+                  console.log("Saved side image:", result);
+                  analysisState.imageBlobArray.push(result);
+                  analysisState.state = "upload_photo";
+                  analysisState.validSince = now;
+                  analysisState.sideImageTensor = result.tensor;
+                  DisplayFeedback("Ready to upload photos...");
+                }
+              });
+              break;
+
+            default:
+              // If state is unrecognized, reset to “start”
+              // deadcode will never happen
+              analysisState.state = "start";
+              analysisState.validSince = now;
+              DisplayFeedback("Resetting detection. Please stand still.");
+              break;
+          }
+        } else {
+          DisplayFeedback("Detection in progress, remain still...");
+        }
+      }
+    } else {
+      console.log("all pictures are taken ");
     }
   }
+
   function returnPhotoRef(url_modifier, callback) {
     console.log("Capturing photo for", url_modifier);
     const tempCanvas = document.createElement("canvas");
