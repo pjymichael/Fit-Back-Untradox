@@ -106,7 +106,7 @@ export default function HomePage() {
   ];
 
   return (
-    <Page title="Product and Sizing Information">
+    <Page title="Product and Sizing Information v1">
       <Tabs tabs={tabs} selected={selectedTab} onSelect={handleTabChange} fitted>
         <Layout.Section>
           <Layout>

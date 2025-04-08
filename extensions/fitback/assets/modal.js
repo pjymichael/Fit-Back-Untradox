@@ -311,6 +311,7 @@ document.addEventListener("DOMContentLoaded", () => {
     legInput,
     thighInput,
   } = elements;
+  
 
   // -- NEW: Append overlay to <body> so it's not nested in a limiting container --
   document.body.appendChild(overlay);
