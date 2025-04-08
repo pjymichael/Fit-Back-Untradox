@@ -7,22 +7,9 @@ import {
   classifyFrame,
 } from "./workerFunctionsHelper.js";
 import { initializePoseDetector, estimatePoses } from "./poseDetector.js";
-import { predictSizes } from "./predictSize.js?v=789";
-import { PassThrough } from "stream";
+import { predictSizes } from "./predictSize.js";
 
-// Declare variables at the top of your script
-let gender = "";
-let height = 0;
-let weight = 0;
-let age = 0;
-let shoulder = 0;
-let hip = 0;
-let arm = 0;
-let leg = 0;
-let chest = 0;
-let waist = 0;
-let torso = 0;
-let thigh = 0;
+console.log("Running v6");
 
 let currentSize;
 let sizingData;
@@ -161,25 +148,98 @@ setWorkerInstance(tf1Worker);
 
 requestVersion();
 
-async function collapsePose(canvas) {
-  const ctx = canvas.getContext("2d", { willReadFrequently: true });
-  const { width, height } = canvas;
-  const imageData = ctx.getImageData(0, 0, width, height);
+// async function collapsePose(video) {
+//   // Get intrinsic video dimensions.
+//   const width = video.videoWidth;
+//   const height = video.videoHeight;
+//   console.log("collapsePose: normal dimensions =", width, height);
 
+//   // Create a temporary canvas with normal dimensions.
+//   const normalCanvas = document.createElement("canvas");
+//   normalCanvas.width = width;
+//   normalCanvas.height = height;
+//   const ctx = normalCanvas.getContext("2d", { willReadFrequently: true });
+
+//   // Draw the current video frame onto the canvas.
+//   ctx.drawImage(video, 0, 0, width, height);
+
+//   // Retrieve the image data from the canvas.
+//   const imageData = ctx.getImageData(0, 0, width, height);
+
+//   // Convert the canvas content to a Data URL for debugging.
+//   const normalDataURL = normalCanvas.toDataURL("image/png");
+//   console.log("collapsePose: Normal frame (Data URL) →", normalDataURL);
+
+//   // Pass the image data buffer to the classifier.
+//   try {
+//     const result = await classifyFrame(width, height, imageData.data.buffer);
+//     return {
+//       poseName: result.bestClass,
+//       poseConfidence: result.probability,
+//       normalDataURL, // Debug URL for verification.
+//     };
+//   } catch (error) {
+//     console.error("Error in classification:", error);
+//     return {
+//       poseName: null,
+
+//       poseConfidence: 0,
+//       normalDataURL,
+//     };
+//   }
+// }
+
+async function collapsePose(video) {
+  // Use displayed size, not intrinsic size
+  const displayedWidth = video.clientWidth;
+  const displayedHeight = video.clientHeight;
+  console.log(
+    "collapsePose: displayed dimensions =",
+    displayedWidth,
+    displayedHeight,
+  );
+
+  // Create a temporary canvas with displayed dimensions
+  const normalCanvas = document.createElement("canvas");
+  normalCanvas.width = displayedWidth;
+  normalCanvas.height = displayedHeight;
+  const ctx = normalCanvas.getContext("2d", { willReadFrequently: true });
+
+  // If your <video> is mirrored in CSS with transform: scaleX(-1),
+  // replicate that transform:
+  ctx.save();
+  ctx.translate(displayedWidth, 0);
+  ctx.scale(-1, 1);
+  ctx.drawImage(video, 0, 0, displayedWidth, displayedHeight);
+  ctx.restore();
+
+  // Retrieve the image data from the canvas
+  const imageData = ctx.getImageData(0, 0, displayedWidth, displayedHeight);
+
+  // Convert the canvas content to a Data URL for debugging
+  const normalDataURL = normalCanvas.toDataURL("image/png");
+  console.log("collapsePose: Normal frame (Data URL) →", normalDataURL);
+
+  // Pass image data to your classifier
   try {
-    const result = await classifyFrame(width, height, imageData.data.buffer);
-    // If we got here, no errors were thrown
+    const result = await classifyFrame(
+      displayedWidth,
+      displayedHeight,
+      imageData.data.buffer,
+    );
     return {
       poseName: result.bestClass,
       poseConfidence: result.probability,
     };
   } catch (error) {
-    // If the worker or the classification logic fails:
     console.error("Error in classification:", error);
-    return { poseName: null, poseConfidence: 0 };
+    return {
+      poseName: null,
+      poseConfidence: 0,
+    };
   }
 }
-
+// By using this approach,
 requestVersion();
 // const TM_URL = "https://teachablemachine.withgoogle.com/models/bOkXKhLNs/";
 const TM_URL = "https://teachablemachine.withgoogle.com/models/l5GZBzm0W/";
@@ -277,112 +337,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  //dictionary storage of user information
-
-  //////////////////RECOMMENDER CAROUSEL PORTION///////////////////////////////
-
-  // if (sizes && sizes.length > 0) {
-  //   const gliderElement = document.querySelector('.glider');
-  //   gliderElement.innerHTML = ""; // Clear any existing slides
-
-  //   sizes.forEach((size, index) => {
-  //     const slide = document.createElement('div');
-  //     slide.classList.add('slide');
-  //     slide.setAttribute('data-slide', index + 1);
-  //     slide.setAttribute('tabindex', '0');
-  //     slide.innerHTML = `<h1>${size.toUpperCase()}</h1>`;
-  //     gliderElement.appendChild(slide);
-  //   });
-  // }
-  // var glider = new Glider(document.querySelector('.glider'), {
-  //   slidesToShow: 1,
-  //   dots: '.dots',
-  //   draggable: true,
-  //   scrollLock: true,
-  //   rewind: true,
-  //   arrows: {
-  //     prev: '.glider-prev',
-  //     next: '.glider-next'
-  //   }
-  // });
-
-  // // console.log(glider)
-  // var numberOfSliders = document.querySelectorAll('.glider-slide').length
-
-  // function getPreviousSlide(currentSlide) {
-  //   if (currentSlide === 1) {
-  //     return numberOfSliders;
-  //   } else {
-  //     return currentSlide - 1;
-  //   }
-  // }
-
-  // function goToPreviousSlide(currentSlide) {
-  //     var previousSlide = getPreviousSlide(currentSlide);
-  //     var imageContent = document.querySelector(`.glider-slide:nth-of-type(${previousSlide})`);
-  //     document.querySelector('#hidden-image').innerHTML = imageContent.innerHTML;
-  // }
-
-  // function getNextSlide(currentSlide) {
-  //   if (currentSlide === numberOfSliders) {
-  //     return 1;
-  //   } else {
-  //     return currentSlide + 1;
-  //   }
-  // }
-
-  // function goToNextSlide(currentSlide) {
-  //     var previousSlide = getNextSlide(currentSlide);
-  //     var imageContent = document.querySelector(`.glider-slide:nth-of-type(${previousSlide})`);
-  //     document.querySelector('#hidden-image').innerHTML = imageContent.innerHTML;
-  // }
-
-  // document.querySelector('.glider-prev').addEventListener("click", function() {
-  //   var currentSlide = parseInt(document.querySelector('.glider-slide.active').getAttribute('data-slide'));
-  //   goToPreviousSlide(currentSlide)
-  // });
-
-  // document.querySelector('.glider-next').addEventListener("click", function() {
-  //   var currentSlide = parseInt(document.querySelector('.glider-slide.active').getAttribute('data-slide'));
-  //   goToNextSlide(currentSlide)
-  // });
-
-  // // Listen for the 'glider-slide-visible' event to know when the slide changes
-  // document.querySelector('.glider').addEventListener('glider-slide-visible', function(event) {
-  //   // event.detail.slide gives the index of the new active slide.
-  //   // This index might start at 0 or 1 based on Glider.js configuration.
-  //   console.log('New active slide is:', event.detail.slide);
-  //   // event.detail.slide is the new active slide's index (assuming 0-based)
-  //   let activeIndex = event.detail.slide;
-  //   let activeSize = sizes[activeIndex];  // For example, "M"
-
-  //   // Retrieve the size range data for the active size
-  //   let currentSizeData = sizingData.sizes[activeSize];
-
-  //   // For each category (e.g., chest, torso, etc.)
-  //   categories.forEach(category => {
-  //     // Get the user's measurement for this category (assumes userInfo is kept updated)
-  //     let userMeasurement = userInfo[category];
-
-  //     // Get the measurement range for the current size and category
-  //     let range = currentSizeData[category];
-
-  //     if (range && userMeasurement) {
-  //       // Evaluate the fit (e.g., "Too Small", "Just Right", or "Too Big")
-  //       let fitResult = evaluateFit(userMeasurement, range);
-
-  //       // Update the corresponding recommendation card's text
-  //       // Assuming each recommender card has a data attribute matching the category in lowercase.
-  //       let card = document.querySelector(`.sizing-card[data-category="${category.toLowerCase()}"] p`);
-  //       if (card) {
-  //         card.textContent = fitResult;
-  //       }
-  //     }
-  //   });
-
-  // });
-  //////////////////////////////////////////////////////////////////////////helper functions
-
   const constructRecommenderCard = (productSizeCategory) => {
     //product size category will be an array of categories (e.g) [chest, torso, shoulder]
     //loop through and create a sizing card like the following (with h5 using category, set p text content as NA first )
@@ -406,7 +360,7 @@ document.addEventListener("DOMContentLoaded", () => {
     container.innerHTML = "";
 
     productSizeCategory.forEach((category) => {
-      // Create the card wrapper
+      // Create the card wrappercameraS
       const card = document.createElement("div");
       card.classList.add("sizing-card");
       card.setAttribute("data-category", category.toLowerCase());
@@ -460,12 +414,20 @@ document.addEventListener("DOMContentLoaded", () => {
         video.srcObject = stream;
         video.play();
         video.style.display = "block";
+
+        // video.style.setProperty("width", "1920px", "important");
+        // video.style.setProperty("height", "auto", "important");
+
+        video.style.display = "block"; // Makes sure the video is visible
         video.onloadeddata = () => {
           console.log("Video loaded, starting pose detection...");
           // TODO : convert this to a function to initialize the silhoutte
           const silhouette = document.getElementById("expected-silhouette");
           console.log("Silhouette element:", silhouette.src);
           silhouette.style.height = video.offsetHeight * 0.95 + "px";
+          console.log(video.clientHeight, video.clientWidth);
+          // canvas.width = video.clientWidth;
+          // canvas.height = video.clientHeight;
           canvas.width = video.videoWidth;
           canvas.height = video.videoHeight;
           startPoseDetection();
@@ -866,11 +828,13 @@ document.addEventListener("DOMContentLoaded", () => {
     uploadInProgress: false,
     frontImageTensor: null, // image tensors for the size prediction
     sideImageTensor: null,
+    firstTime: true,
   };
   const REQUIRED_TIME = 3000;
   let isClassifying = false;
 
-  async function analysePose(pose, ctx) {
+  function calculateIsInsideFrame(pose, ctx) {
+    // Define your keypoint groups and confidence thresholds.
     const headPoints = [
       "nose",
       "left_eye",
@@ -892,37 +856,34 @@ document.addEventListener("DOMContentLoaded", () => {
       "left_ankle",
       "right_ankle",
     ];
-
-    // Set different confidence thresholds
     const bodyMinConfidence = 0.5;
     const headMinConfidence = 0.4;
 
-    // Filter keypoints by confidence and name separately for head and body
+    // Filter keypoints by confidence.
     const confidentHeadKeypoints = pose.keypoints.filter(
       (kp) => headPoints.includes(kp.name) && kp.score > headMinConfidence,
     );
-
     const confidentBodyKeypoints = pose.keypoints.filter(
       (kp) => bodyPoints.includes(kp.name) && kp.score > bodyMinConfidence,
     );
 
-    // Union of the keypoints to be used for position checks
+    // Combine the keypoints for further position checks.
     const filteredKeypoints = [
       ...confidentHeadKeypoints,
       ...confidentBodyKeypoints,
     ];
 
-    // Check that every body keypoint is present
+    // Ensure every body keypoint is present.
     const allBodyPresent = bodyPoints.every((point) =>
       confidentBodyKeypoints.some((kp) => kp.name === point),
     );
 
-    // Check that at least one head keypoint is present
+    // Ensure at least one head keypoint is present.
     const isHead = headPoints.some((point) =>
       confidentHeadKeypoints.some((kp) => kp.name === point),
     );
 
-    // Define padding boundaries
+    // Define padded boundaries.
     const horizontalPadding = 10;
     const verticalPadding = 10;
     const left = horizontalPadding;
@@ -930,17 +891,109 @@ document.addEventListener("DOMContentLoaded", () => {
     const top = verticalPadding;
     const bottom = ctx.canvas.height - verticalPadding;
 
-    // Because the canvas is mirrored, adjust x coordinate accordingly
+    // Adjust x coordinate because the canvas is mirrored.
     const pointsOutsidePadding = filteredKeypoints.filter((kp) => {
       const x = ctx.canvas.width - kp.x;
       const y = kp.y;
       return x < left || x > right || y < top || y > bottom;
     });
 
-    // The final check: all body keypoints must be present, at least one head keypoint present,
-    // and no keypoint should be outside the padded boundaries.
+    // Final check: inside if no filtered keypoint is outside AND all body and at least one head keypoint are present.
     const isInsideFrame =
       pointsOutsidePadding.length === 0 && allBodyPresent && isHead;
+
+    return {
+      isInsideFrame,
+      filteredKeypoints,
+      allBodyPresent,
+      isHead,
+      pointsOutsidePadding,
+    };
+  }
+
+  function calculateIsSideInsideFrame(pose, ctx) {
+    // Define groups for the side view check.
+    const sideHead = ["nose", "left_eye", "right_eye", "left_ear", "right_ear"];
+    const sideShoulders = ["left_shoulder", "right_shoulder"];
+    const sideWrists = ["left_wrist", "right_wrist"];
+    const sideKnees = ["left_knee", "right_knee"];
+    const sideHipsAnkles = [
+      "left_hip",
+      "right_hip",
+      "left_ankle",
+      "right_ankle",
+    ];
+
+    // Use a lower confidence threshold for side view.
+    const minConfidence = 0.3;
+
+    // Filter out keypoints that meet the minimum confidence.
+    const validKeypoints = pose.keypoints.filter(
+      (kp) => kp.score >= minConfidence,
+    );
+
+    // Define padded boundaries.
+    const horizontalPadding = 10;
+    const verticalPadding = 10;
+    const leftBound = horizontalPadding;
+    const rightBound = ctx.canvas.width - horizontalPadding;
+    const topBound = verticalPadding;
+    const bottomBound = ctx.canvas.height - verticalPadding;
+
+    // Helper function to check if a keypoint is inside the padded boundaries.
+    function isInside(kp) {
+      // Adjust x coordinate because the canvas is mirrored.
+      const x = ctx.canvas.width - kp.x;
+      const y = kp.y;
+      return (
+        x >= leftBound && x <= rightBound && y >= topBound && y <= bottomBound
+      );
+    }
+
+    // For each group, check that at least one keypoint is inside the boundaries.
+    const headInside = validKeypoints.some(
+      (kp) => sideHead.includes(kp.name) && isInside(kp),
+    );
+    const shouldersInside = validKeypoints.some(
+      (kp) => sideShoulders.includes(kp.name) && isInside(kp),
+    );
+    const wristsInside = validKeypoints.some(
+      (kp) => sideWrists.includes(kp.name) && isInside(kp),
+    );
+    const kneesInside = validKeypoints.some(
+      (kp) => sideKnees.includes(kp.name) && isInside(kp),
+    );
+    const hipsAnklesInside = validKeypoints.some(
+      (kp) => sideHipsAnkles.includes(kp.name) && isInside(kp),
+    );
+
+    // isSideInsideFrame is true only if each group has at least one keypoint inside.
+    return (
+      headInside &&
+      shouldersInside &&
+      wristsInside &&
+      kneesInside &&
+      hipsAnklesInside
+    );
+  }
+
+  async function analysePose(pose, ctx) {
+    const {
+      isInsideFrame,
+      filteredKeypoints,
+      allBodyPresent,
+      isHead,
+      pointsOutsidePadding,
+    } = calculateIsInsideFrame(pose, ctx);
+
+    const isSideInsideFrame = calculateIsSideInsideFrame(pose, ctx);
+
+    const horizontalPadding = 10;
+    const verticalPadding = 10;
+    const left = horizontalPadding;
+    const right = ctx.canvas.width - horizontalPadding;
+    const top = verticalPadding;
+    const bottom = ctx.canvas.height - verticalPadding;
 
     // console.log(
     //   "confident head keypoints:",
@@ -958,14 +1011,6 @@ document.addEventListener("DOMContentLoaded", () => {
     //   "is inside frame:",
     //   isInsideFrame,
     // );
-
-    if (!allBodyPresent || !isHead) {
-      console.log("Keypoints details:", {
-        head: confidentHeadKeypoints,
-        body: confidentBodyKeypoints,
-      });
-    }
-
     const now = Date.now();
 
     // analysisState.state = "final_state"; // debugging statement
@@ -986,6 +1031,7 @@ document.addEventListener("DOMContentLoaded", () => {
         camerascanclass1.style.display = "none";
         console.log(camerascanclass2);
         camerascanclass2.classList.remove("hidden");
+        document.querySelector(".modal-content").classList.remove("cameraScan");
         console.log(camerascanclass2);
         //cameraController.deactivateCamera();
       }, 1000);
@@ -997,150 +1043,10 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // move this to the else condition
-    // if (!isInsideFrame && analysisState.state !== "start") {
-    //   if (analysisState.imageBlobArray.length === 0) {
-    //     analysisState.state = "detecting_one";
-    //   } else if (analysisState.imageBlobArray.length === 1) {
-    //     analysisState.state = "detecting_two";
-    //   }
-    //   analysisState.validSince = null;
-    //   const msg = "Please stand inside the frame";
-    //   if (analysisState.lastFeedback !== msg) {
-    //     DisplayFeedback(msg);
-    //     analysisState.lastFeedback = msg;
-    //   }
-    //   return;
-    // }
-
-    // If inside the frame, increment time. Once we’re steady for REQUIRED_TIME, do a new state action
-    if (isInsideFrame) {
-      if (!analysisState.validSince) {
-        analysisState.validSince = now;
-      }
-      if (now - analysisState.validSince >= REQUIRED_TIME) {
-        switch (analysisState.state) {
-          case "start":
-            updateSilhouette("start");
-            console.log("Transitioning to detecting_one");
-            analysisState.state = "detecting_one";
-            analysisState.validSince = now;
-            DisplayFeedback("Detecting your pose...");
-            break;
-          case "detecting_one":
-            if (isClassifying) break;
-            isClassifying = true;
-            const result1 = await collapsePose(canvas);
-            if (
-              result1.poseName &&
-              result1.poseName.toLowerCase() === "front-view".toLowerCase() &&
-              result1.poseConfidence > 0.7
-            ) {
-              DisplayFeedback("Pose Detected, taking photo");
-              analysisState.state = "ready_one";
-              analysisState.validSince = now;
-            } else {
-              console.log("result1", result1);
-              DisplayFeedback("Please match the silhouette with your body");
-              isClassifying = false;
-              return;
-            }
-            isClassifying = false;
-            break;
-
-          case "ready_one":
-            DisplayFeedback("Taking front photo...");
-            returnPhotoRef("front", (err, result) => {
-              if (err) {
-                console.error("Capture Photo method failed", err);
-              } else {
-                console.log("Saved front image:", result);
-                analysisState.imageBlobArray.push(result);
-                analysisState.state = "start_2";
-                analysisState.validSince = now;
-                analysisState.frontImageTensor = result.tensor;
-              }
-            });
-            break;
-
-          case "start_2":
-            analysisState.state = "detecting_two";
-            DisplayFeedback("Please rotate 90° to your left");
-            analysisState.validSince = now;
-            updateSilhouette("start_2");
-            // We'll rely on the user physically rotating
-            break;
-
-          case "detecting_two":
-            if (isClassifying) break;
-            isClassifying = true;
-            const result2 = await collapsePose(canvas);
-            if (
-              result2.poseName === "side-view" &&
-              result2.poseConfidence > 0.7
-            ) {
-              DisplayFeedback("Pose Detected, taking photo");
-              analysisState.state = "ready_two";
-              analysisState.validSince = now;
-            } else {
-              DisplayFeedback("Please match the silhouette with your body");
-              isClassifying = false;
-              return;
-            }
-            isClassifying = false;
-            break;
-
-          case "ready_two":
-            DisplayFeedback("Taking side photo...");
-            returnPhotoRef("side", (err, result) => {
-              if (err) {
-                console.error("Capture Photo method failed", err);
-              } else {
-                console.log("Saved side image:", result);
-                analysisState.imageBlobArray.push(result);
-                analysisState.state = "upload_photo";
-                analysisState.validSince = now;
-                analysisState.sideImageTensor = result.tensor;
-                DisplayFeedback("Ready to upload photos...");
-              }
-            });
-            break;
-
-          default:
-            // If state is unrecognized, reset to “start”
-            // deadcode will never happen
-            analysisState.state = "start";
-            analysisState.validSince = now;
-            DisplayFeedback("Resetting detection. Please stand still.");
-            break;
-        }
-      } else {
-        // Not enough consecutive frames yet
-        const msg = "Detection in progress, remain still...";
-        if (analysisState.lastFeedback !== msg) {
-          DisplayFeedback(msg);
-          analysisState.lastFeedback = msg;
-        }
-      }
-    } else {
-      if (analysisState.imageBlobArray.length === 0) {
-        if (analysisState.state != "start") {
-          analysisState.state = "detecting_one";
-        }
-      } else if (analysisState.imageBlobArray.length === 1) {
-        // checking for side pose
-      }
-
-      // If we are in “start” but not inside the frame
-      if (analysisState.state === "start") {
-        const msg = "Please match the silhouette with your body";
-        //
-        if (analysisState.lastFeedback !== msg) {
-          DisplayFeedback(msg);
-          analysisState.lastFeedback = msg;
-        }
-      }
+    if (analysisState.firstTime) {
+      updateSilhouette("start");
+      analysisState.firstTime = false;
     }
-    // add the shit here
     if (analysisState.imageBlobArray.length == 0) {
       if (!isInsideFrame) {
         console.log("Front pose but not inside frame");
@@ -1148,6 +1054,7 @@ document.addEventListener("DOMContentLoaded", () => {
         analysisState.validSince = null;
         DisplayFeedback("Please stand inside the frame");
       } else {
+        console.log("Front Pose inside Frame");
         if (!analysisState.validSince) {
           analysisState.validSince = now;
         }
@@ -1163,7 +1070,8 @@ document.addEventListener("DOMContentLoaded", () => {
             case "detecting_one":
               if (isClassifying) break;
               isClassifying = true;
-              const result1 = await collapsePose(canvas);
+
+              const result1 = await collapsePose(video);
               if (
                 result1.poseName &&
                 result1.poseName.toLowerCase() === "front-view".toLowerCase() &&
@@ -1196,54 +1104,8 @@ document.addEventListener("DOMContentLoaded", () => {
               });
               break;
 
-            case "start_2":
-              analysisState.state = "detecting_two";
-              DisplayFeedback("Please rotate 90° to your left");
-              analysisState.validSince = now;
-              updateSilhouette("start_2");
-              // We'll rely on the user physically rotating
-              break;
-
-            case "detecting_two":
-              if (isClassifying) break;
-              isClassifying = true;
-              const result2 = await collapsePose(canvas);
-              if (
-                result2.poseName === "side-view" &&
-                result2.poseConfidence > 0.7
-              ) {
-                DisplayFeedback("Pose Detected, taking photo");
-                analysisState.state = "ready_two";
-                analysisState.validSince = now;
-              } else {
-                DisplayFeedback("Please match the silhouette with your body");
-                isClassifying = false;
-                return;
-              }
-              isClassifying = false;
-              break;
-
-            case "ready_two":
-              DisplayFeedback("Taking side photo...");
-              returnPhotoRef("side", (err, result) => {
-                if (err) {
-                  console.error("Capture Photo method failed", err);
-                } else {
-                  console.log("Saved side image:", result);
-                  analysisState.imageBlobArray.push(result);
-                  analysisState.state = "upload_photo";
-                  analysisState.validSince = now;
-                  analysisState.sideImageTensor = result.tensor;
-                  DisplayFeedback("Ready to upload photos...");
-                }
-              });
-              break;
-
             default:
-              // If state is unrecognized, reset to “start”
-              // deadcode will never happen
-              analysisState.state = "start";
-              analysisState.validSince = now;
+              console.log("analysisState", analysisState.state);
               DisplayFeedback("Resetting detection. Please stand still.");
               break;
           }
@@ -1253,9 +1115,9 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     } else if (analysisState.imageBlobArray.length == 1) {
       // instead of 1 have something else to calculate inside frame
-      if (!isInsideFrame) {
-        console.log("Front pose but not inside frame");
-        analysisState.state = "detecting_one";
+      if (!isSideInsideFrame) {
+        console.log("sidePose but not inside frame ********");
+        analysisState.state = "start_2";
         analysisState.validSince = null;
         DisplayFeedback("Please stand inside the frame");
       } else {
@@ -1264,61 +1126,18 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         if (now - analysisState.validSince >= REQUIRED_TIME) {
           switch (analysisState.state) {
-            case "start":
-              updateSilhouette("start");
-              console.log("Transitioning to detecting_one");
-              analysisState.state = "detecting_one";
-              analysisState.validSince = now;
-              DisplayFeedback("Detecting your pose...");
-              break;
-            case "detecting_one":
-              if (isClassifying) break;
-              isClassifying = true;
-              const result1 = await collapsePose(canvas);
-              if (
-                result1.poseName &&
-                result1.poseName.toLowerCase() === "front-view".toLowerCase() &&
-                result1.poseConfidence > 0.7
-              ) {
-                DisplayFeedback("Pose Detected, taking photo");
-                analysisState.state = "ready_one";
-                analysisState.validSince = now;
-              } else {
-                console.log("result1", result1);
-                DisplayFeedback("Please match the silhouette with your body");
-                isClassifying = false;
-                return;
-              }
-              isClassifying = false;
-              break;
-
-            case "ready_one":
-              DisplayFeedback("Taking front photo...");
-              returnPhotoRef("front", (err, result) => {
-                if (err) {
-                  console.error("Capture Photo method failed", err);
-                } else {
-                  console.log("Saved front image:", result);
-                  analysisState.imageBlobArray.push(result);
-                  analysisState.state = "start_2";
-                  analysisState.validSince = now;
-                  analysisState.frontImageTensor = result.tensor;
-                }
-              });
-              break;
-
             case "start_2":
+              updateSilhouette("start_2");
               analysisState.state = "detecting_two";
               DisplayFeedback("Please rotate 90° to your left");
               analysisState.validSince = now;
-              updateSilhouette("start_2");
               // We'll rely on the user physically rotating
               break;
 
             case "detecting_two":
               if (isClassifying) break;
               isClassifying = true;
-              const result2 = await collapsePose(canvas);
+              const result2 = await collapsePose(video);
               if (
                 result2.poseName === "side-view" &&
                 result2.poseConfidence > 0.7
@@ -1327,6 +1146,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 analysisState.state = "ready_two";
                 analysisState.validSince = now;
               } else {
+                console.log("result2", result2);
                 DisplayFeedback("Please match the silhouette with your body");
                 isClassifying = false;
                 return;
@@ -1353,13 +1173,14 @@ document.addEventListener("DOMContentLoaded", () => {
             default:
               // If state is unrecognized, reset to “start”
               // deadcode will never happen
-              analysisState.state = "start";
+              console.log("analysisState", analysisState.state);
+              analysisState.state = "start_2";
               analysisState.validSince = now;
               DisplayFeedback("Resetting detection. Please stand still.");
               break;
           }
         } else {
-          DisplayFeedback("Detection in progress, remain still...");
+          // DisplayFeedback("Detection in progress, remain still...");
         }
       }
     } else {
@@ -1876,3 +1697,188 @@ function evaluateFit(userMeasurement, range) {
     return "Just Right";
   }
 }
+
+//dictionary storage of user information
+
+//////////////////RECOMMENDER CAROUSEL PORTION///////////////////////////////
+
+// if (sizes && sizes.length > 0) {
+//   const gliderElement = document.querySelector('.glider');
+//   gliderElement.innerHTML = ""; // Clear any existing slides
+
+//   sizes.forEach((size, index) => {
+//     const slide = document.createElement('div');
+//     slide.classList.add('slide');
+//     slide.setAttribute('data-slide', index + 1);
+//     slide.setAttribute('tabindex', '0');
+//     slide.innerHTML = `<h1>${size.toUpperCase()}</h1>`;
+//     gliderElement.appendChild(slide);
+//   });
+// }
+// var glider = new Glider(document.querySelector('.glider'), {
+//   slidesToShow: 1,
+//   dots: '.dots',
+//   draggable: true,
+//   scrollLock: true,
+//   rewind: true,
+//   arrows: {
+//     prev: '.glider-prev',
+//     next: '.glider-next'
+//   }
+// });
+
+// // console.log(glider)
+// var numberOfSliders = document.querySelectorAll('.glider-slide').length
+
+// function getPreviousSlide(currentSlide) {
+//   if (currentSlide === 1) {
+//     return numberOfSliders;
+//   } else {
+//     return currentSlide - 1;
+//   }
+// }
+
+// function goToPreviousSlide(currentSlide) {
+//     var previousSlide = getPreviousSlide(currentSlide);
+//     var imageContent = document.querySelector(`.glider-slide:nth-of-type(${previousSlide})`);
+//     document.querySelector('#hidden-image').innerHTML = imageContent.innerHTML;
+// }
+
+// function getNextSlide(currentSlide) {
+//   if (currentSlide === numberOfSliders) {
+//     return 1;
+//   } else {
+//     return currentSlide + 1;
+//   }
+// }
+
+// function goToNextSlide(currentSlide) {
+//     var previousSlide = getNextSlide(currentSlide);
+//     var imageContent = document.querySelector(`.glider-slide:nth-of-type(${previousSlide})`);
+//     document.querySelector('#hidden-image').innerHTML = imageContent.innerHTML;
+// }
+
+// document.querySelector('.glider-prev').addEventListener("click", function() {
+//   var currentSlide = parseInt(document.querySelector('.glider-slide.active').getAttribute('data-slide'));
+//   goToPreviousSlide(currentSlide)
+// });
+
+// document.querySelector('.glider-next').addEventListener("click", function() {
+//   var currentSlide = parseInt(document.querySelector('.glider-slide.active').getAttribute('data-slide'));
+//   goToNextSlide(currentSlide)
+// });
+
+// // Listen for the 'glider-slide-visible' event to know when the slide changes
+// document.querySelector('.glider').addEventListener('glider-slide-visible', function(event) {
+//   // event.detail.slide gives the index of the new active slide.
+//   // This index might start at 0 or 1 based on Glider.js configuration.
+//   console.log('New active slide is:', event.detail.slide);
+//   // event.detail.slide is the new active slide's index (assuming 0-based)
+//   let activeIndex = event.detail.slide;
+//   let activeSize = sizes[activeIndex];  // For example, "M"
+
+//   // Retrieve the size range data for the active size
+//   let currentSizeData = sizingData.sizes[activeSize];
+
+//   // For each category (e.g., chest, torso, etc.)
+//   categories.forEach(category => {
+//     // Get the user's measurement for this category (assumes userInfo is kept updated)
+//     let userMeasurement = userInfo[category];
+
+//     // Get the measurement range for the current size and category
+//     let range = currentSizeData[category];
+
+//     if (range && userMeasurement) {
+//       // Evaluate the fit (e.g., "Too Small", "Just Right", or "Too Big")
+//       let fitResult = evaluateFit(userMeasurement, range);
+
+//       // Update the corresponding recommendation card's text
+//       // Assuming each recommender card has a data attribute matching the category in lowercase.
+//       let card = document.querySelector(`.sizing-card[data-category="${category.toLowerCase()}"] p`);
+//       if (card) {
+//         card.textContent = fitResult;
+//       }
+//     }
+//   });
+
+// });
+//////////////////////////////////////////////////////////////////////////helper functions
+
+// Assuming sizes is an array like ["s", "m", "l"]
+// if (sizes && sizes.length > 0) {
+//   const gliderElement = document.querySelector('.glider');
+//   gliderElement.innerHTML = ""; // Clear any existing slides
+
+//   sizes.forEach((size, index) => {
+//     const slide = document.createElement('div');
+//     slide.classList.add('slide');
+//     slide.setAttribute('data-slide', index + 1);
+//     slide.setAttribute('tabindex', '0');
+//     slide.innerHTML = `<h1>${size.toUpperCase()}</h1>`;
+//     gliderElement.appendChild(slide);
+//   });
+// } else {
+//     // Otherwise, initialize it
+//     glider = new Glider(gliderElement, {
+//       slidesToShow: 1,
+//       dots: '.dots',
+//       draggable: true,
+//       scrollLock: true,
+//       rewind: true,
+//       arrows: {
+//         prev: '.glider-prev',
+//         next: '.glider-next'
+//       }
+//     });
+// }
+
+// let numberOfSliders = document.querySelectorAll('.glider-slide').length
+
+// function getPreviousSlide(currentSlide) {
+//   if (currentSlide === 1) {
+//     return numberOfSliders;
+//   } else {
+//     return currentSlide - 1;
+//   }
+// }
+
+// function goToPreviousSlide(currentSlide) {
+//     var previousSlide = getPreviousSlide(currentSlide);
+//     var imageContent = document.querySelector(`.glider-slide:nth-of-type(${previousSlide})`);
+//     document.querySelector('#hidden-image').innerHTML = imageContent.innerHTML;
+// }
+
+// function getNextSlide(currentSlide) {
+//   if (currentSlide === numberOfSliders) {
+//     return 1;
+//   } else {
+//     return currentSlide + 1;
+//   }
+// }
+
+// function goToNextSlide(currentSlide) {
+//     var previousSlide = getNextSlide(currentSlide);
+//     var imageContent = document.querySelector(`.glider-slide:nth-of-type(${previousSlide})`);
+//     document.querySelector('#hidden-image').innerHTML = imageContent.innerHTML;
+// }
+
+// document.querySelector('.glider-prev').addEventListener("click", function() {
+//   var currentSlide = parseInt(document.querySelector('.glider-slide.active').getAttribute('data-slide'));
+//   goToPreviousSlide(currentSlide)
+// });
+
+// document.querySelector('.glider-next').addEventListener("click", function() {
+//   var currentSlide = parseInt(document.querySelector('.glider-slide.active').getAttribute('data-slide'));
+//   goToNextSlide(currentSlide)
+// });
+
+// // Listen for the 'glider-slide-visible' event to know when the slide changes
+// document.querySelector('.glider').addEventListener('glider-slide-visible', function(event) {
+//   // event.detail.slide gives the index of the new active slide.
+//   // This index might start at 0 or 1 based on Glider.js configuration.
+//   console.log('New active slide is:', event.detail.slide);
+// });
+
+//Camera Scan code
+
+//initFirebase(firebaseConfig);

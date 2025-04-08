@@ -390,6 +390,8 @@ h5 {
   font-size: 5rem !important;
   text-align: center !important;
   font-weight: bold !important;
+  white-space: normal !important; /* Allow wrapping */
+  word-wrap: break-word !important; /* Break long words if needed */
 }
 
 .camera-container {
