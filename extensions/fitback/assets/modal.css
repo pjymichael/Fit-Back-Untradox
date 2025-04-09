@@ -314,7 +314,7 @@ input {
   border-bottom: 3px solid #000;
 }
 
-#fitback-recommendation .modal-tabs .tab-button:hover {
+#fitback-recommendation .modal-tabs .tab-button:not(.active):hover {
   cursor: pointer;
   color: #d4d4d4;
   border-bottom: 3px solid #d4d4d4;

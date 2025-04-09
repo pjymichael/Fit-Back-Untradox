@@ -248,10 +248,8 @@ const TM_URL = "https://teachablemachine.withgoogle.com/models/l5GZBzm0W/";
 loadModel(TM_URL + "model.json", TM_URL + "metadata.json");
 
 let userInfo = {
-  gender: null,
   height: null,
   weight: null,
-  age: null,
   shoulder: null,
   hip: null,
   arm: null,
@@ -288,10 +286,8 @@ document.addEventListener("DOMContentLoaded", () => {
     onboardCameraGuidelinesNext,
     onboardCameraPositionNext,
     CameraScanNext,
-    genderInput,
     heightInput,
     weightInput,
-    ageInput,
     sizingCardContainer,
     screenFit,
     screenProfile,
@@ -455,7 +451,7 @@ document.addEventListener("DOMContentLoaded", () => {
       return video;
     },
   };
-  const userDetailArray = [genderInput, heightInput, weightInput, ageInput];
+  const userDetailArray = [heightInput, weightInput];
   
   const measurementInputArray = [
     shoulderInput,
@@ -1274,10 +1270,8 @@ function initializeElements() {
       "onboard-camera-position-next",
     ),
     CameraScanNext: document.getElementById("CameraScan-next"),
-    genderInput: document.getElementById("gender-input"),
     heightInput: document.getElementById("height-input"),
     weightInput: document.getElementById("weight-input"),
-    ageInput: document.getElementById("age-input"),
     sizingCardContainer: document.getElementById("sizing-cards-container"),
     screenFit: document.getElementById("screen-fit"),
     screenProfile: document.getElementById("screen-profile"),
