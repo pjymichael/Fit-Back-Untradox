@@ -85,6 +85,7 @@ h6 {
   background-color: var(--button-colour-primary);
   margin-top: 1rem;
   border: none;
+  transition: background-color 0.3s ease, transform 0.2s ease;
 }
 #fitback-recommendation .btn-primary__text {
   color: #fff;
@@ -99,6 +100,7 @@ h6 {
   border-radius: 5rem;
   width: 100%;
   margin-top: 0.5rem;
+  transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
 #fitback-recommendation .btn-secondary__text {
@@ -109,9 +111,13 @@ h6 {
 
 #fitback-recommendation .btn-secondary:hover {
   cursor: pointer;
+  background-color: #ececec;
+  transform: translateY(-1px);
 }
 #fitback-recommendation .btn-primary:hover {
   cursor: pointer;
+  transform: translateY(-1px);
+  background-color: #1a1a1a;
 }
 
 /*define global styling*/
@@ -308,15 +314,31 @@ input {
   border-bottom: 3px solid #000;
 }
 
+#fitback-recommendation .modal-tabs .tab-button:hover {
+  cursor: pointer;
+  color: #d4d4d4;
+  border-bottom: 3px solid #d4d4d4;
+}
+
 /* Glider Carousel */
 .glider-contain {
   width: 70% !important;
 }
 
 .slide {
-  background: gray;
   text-align: center;
   display: flex;
+}
+
+#fitback-recommendation .slide h1 {
+  padding: 1rem 1.5rem;
+  background: #ececec;
+  border-radius: 0.5rem;
+  font-size: 1.75rem;
+}
+
+.glider-dot.active {
+  background: #000 !important;
 }
 
 .glider-next,
@@ -349,7 +371,7 @@ glider-prev {
 }
 
 #fitback-recommendation .sizing-card:hover {
-  background-color: lightgray;
+  background-color: #ececec;
 }
 
 #fitback-recommendation .sizing-card p,
@@ -382,6 +404,7 @@ h5 {
   flex-direction: column;
   gap: 1rem;
   flex: 1;
+  justify-content: center;
 }
 
 #fitback-recommendation .measurement-card {
@@ -400,7 +423,7 @@ h5 {
 }
 
 #fitback-recommendation .measurement-card:hover {
-  background-color: lightgray;
+  background-color: #ececec;
 }
 
 .highlight {
