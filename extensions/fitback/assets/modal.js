@@ -7,7 +7,7 @@ import {
   classifyFrame,
 } from "./workerFunctionsHelper.js";
 import { initializePoseDetector, estimatePoses } from "./poseDetector.js";
-import { predictSizes } from "./predictSize.js";
+import { predictSizes } from "./predictSize2.js";
 
 console.log("Running v6");
 console.log("Running v1.0.10");
@@ -307,7 +307,7 @@ document.addEventListener("DOMContentLoaded", () => {
     legInput,
     thighInput,
   } = elements;
-  
+
 
   // -- NEW: Append overlay to <body> so it's not nested in a limiting container --
   document.body.appendChild(overlay);
@@ -452,7 +452,7 @@ document.addEventListener("DOMContentLoaded", () => {
     },
   };
   const userDetailArray = [heightInput, weightInput];
-  
+
   const measurementInputArray = [
     shoulderInput,
     chestInput,
@@ -1488,11 +1488,11 @@ function setupOnboardingNavigation(
         //show recommendation content screen
         // recommendation content screen is last element of screens array
         showElement(screens[screens.length - 1])
-        
+
         //first get glider working when at recommendation content, then move to edit screen
         const gliderElement = document.querySelector(".glider");
         gliderElement.innerHTML = ""; // Clear any existing slides
- 
+
         sizes.forEach((size, index) => {
           const slide = document.createElement("div");
           slide.classList.add("slide");
@@ -1611,12 +1611,12 @@ function setupOnboardingNavigation(
         showElement(recommendationScreenArray[1]);
         hideElement(recommendationScreenArray[0]);
         hideElement(recommendationScreenArray[2]);
-        showElement(recommendationScreenArray[3]);  
+        showElement(recommendationScreenArray[3]);
         console.log(extraElements);
         //change the active tab button ui
         extraElements.tabFitBtn.classList.remove("active");
         extraElements.tabProfileBtn.classList.add("active");
-        
+
       });
     } else {
       btn.addEventListener("click", () => {
@@ -1624,7 +1624,7 @@ function setupOnboardingNavigation(
         showElement(screens[index + 1]);
       });
     }
-    
+
 
   });
 }
