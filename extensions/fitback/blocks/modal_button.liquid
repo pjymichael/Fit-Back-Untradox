@@ -44,11 +44,11 @@
                         </select>
                     </div>
                     <div>
-                        <label>Height (cm) (required)</label>
+                        <label class="profile-label">Height (cm) (required)</label>
                         <input type="number" id="height-input" name="height" required  value="170">
                     </div>
                     <div>
-                        <label>Weight (kg) (required)</label>
+                        <label class="profile-label">Weight (kg) (required)</label>
                         <input type="number" id="weight-input" name="weight" required value="70">
                     </div>
                     <div>
@@ -342,35 +342,35 @@
                     <div id="screen-profile-measurement-edit" class="screen-profile-measurement-edit hidden">
                         <form id="user-measurement-form" class="form">
                             <div>
-                                <label>Shoulder</label>
+                                <label class="profile-label">Shoulder</label>
                                 <input type="number" id="shoulder-input" name="shoulder" value="70" required>
                             </div>
                             <div>
-                                <label>Chest</label>
+                                <label class="profile-label">Chest</label>
                                 <input type="number" id="chest-input" name="chest" value="100" required>
                             </div>
                             <div>
-                                <label>Hip</label>
+                                <label class="profile-label">Hip</label>
                                 <input type="number" id="hip-input" name="hip" value="50" required>
                             </div>
                             <div>
-                                <label>Waist</label>
+                                <label class="profile-label">Waist</label>
                                 <input type="number" id="waist-input" name="waist" value="80" required>
                             </div>
                             <div>
-                                <label>Torso</label>
+                                <label class="profile-label">Torso</label>
                                 <input type="number" id="torso-input" name="torso" value="50" required>
                             </div>
                             <div>
-                                <label>Arm</label>
+                                <label class="profile-label">Arm</label>
                                 <input type="number" id="arm-input" name="arm" value="50" required>
                             </div>
                             <div>
-                                <label>Leg</label>
+                                <label class="profile-label">Leg</label>
                                 <input type="number" id="leg-input" name="leg" value="50" required>
                             </div>
                             <div>
-                                <label>Thigh</label>
+                                <label class="profile-label">Thigh</label>
                                 <input type="number" id="thigh-input" name="thigh" value="50" required>
                             </div>
                         </form>
@@ -388,7 +388,7 @@
 
     </div>
 
-    <button id="open-modal" class="open-modal-button">Find My Size</button>
+    <button id="open-modal" class="open-modal-button">What's my size?</button>
 </body>
 {% if product.metafields.custom.sizing_table %}
   <script id="sizing-data" type="application/json">

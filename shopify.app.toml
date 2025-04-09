@@ -3,7 +3,7 @@
 client_id = "6d959e3b05f5a0b80990424ba2b0a14d"
 name = "Fitback"
 handle = "fitback-5"
-application_url = "https://tourist-ru-dressed-curtis.trycloudflare.com"
+application_url = "https://collectables-concerns-asn-housewares.trycloudflare.com"
 embedded = true
 
 [build]
@@ -17,9 +17,9 @@ scopes = "read_products,write_products"
 
 [auth]
 redirect_urls = [
-  "https://tourist-ru-dressed-curtis.trycloudflare.com/auth/callback",
-  "https://tourist-ru-dressed-curtis.trycloudflare.com/auth/shopify/callback",
-  "https://tourist-ru-dressed-curtis.trycloudflare.com/api/auth/callback"
+  "https://collectables-concerns-asn-housewares.trycloudflare.com/auth/callback",
+  "https://collectables-concerns-asn-housewares.trycloudflare.com/auth/shopify/callback",
+  "https://collectables-concerns-asn-housewares.trycloudflare.com/api/auth/callback"
 ]
 
 [webhooks]

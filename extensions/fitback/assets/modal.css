@@ -83,6 +83,8 @@ h6 {
   width: 100%;
   height: 3rem;
   background-color: var(--button-colour-primary);
+  margin-top: 1rem;
+  border: none;
 }
 #fitback-recommendation .btn-primary__text {
   color: #fff;
@@ -93,15 +95,23 @@ h6 {
 
 #fitback-recommendation .btn-secondary {
   background-color: var(--button-colour-secondary);
-  height: 2rem;
+  height: 2.5rem;
   border-radius: 5rem;
   width: 100%;
+  margin-top: 0.5rem;
 }
 
 #fitback-recommendation .btn-secondary__text {
   font-size: 1.2rem;
   margin: 0;
   text-align: center;
+}
+
+#fitback-recommendation .btn-secondary:hover {
+  cursor: pointer;
+}
+#fitback-recommendation .btn-primary:hover {
+  cursor: pointer;
 }
 
 /*define global styling*/
@@ -158,6 +168,20 @@ h6 {
   overflow-y: scroll;
 }
 
+/* STORE UI */
+/* What's my size */
+#fitback-recommendation #open-modal {
+  background-color: #4F5354;
+  color: #FFFFFF;
+  padding: 1.5rem;
+  border: none;
+}
+
+#fitback-recommendation #open-modal:hover {
+  background-color: #000;
+  cursor: pointer;
+}
+
 /*ONBOARDING */
 /*welcome */
 .onboard-welcome {
@@ -205,10 +229,12 @@ h6 {
 
 .form div select,
 input {
-  width: 100%;
+  width: 95%;
   border-radius: 1rem;
   border: #000 0.15rem solid;
   padding: 5px 0 5px 10px;
+  display: block;
+  margin: 0 auto;
 }
 
 .unit {
@@ -312,6 +338,7 @@ glider-prev {
   flex-direction: column;
   gap: 10px;
   overflow-y: scroll; /* ✅ Enable vertical scrolling */
+  justify-content: center;
 }
 #fitback-recommendation .sizing-card {
   border: 0.15rem solid black;
@@ -384,6 +411,11 @@ h5 {
 .fill-black {
   fill: black !important;
 }
+
+#fitback-recommendation .profile-label {
+  padding-left: 0.5rem;
+}
+
 /* camera scan code */
 #user-feedback {
   margin: 0 !important;
