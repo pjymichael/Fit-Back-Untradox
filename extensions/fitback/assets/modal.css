@@ -85,7 +85,9 @@ h6 {
   background-color: var(--button-colour-primary);
   margin-top: 1rem;
   border: none;
-  transition: background-color 0.3s ease, transform 0.2s ease;
+  transition:
+    background-color 0.3s ease,
+    transform 0.2s ease;
 }
 #fitback-recommendation .btn-primary__text {
   color: #fff;
@@ -100,7 +102,9 @@ h6 {
   border-radius: 5rem;
   width: 100%;
   margin-top: 0.5rem;
-  transition: background-color 0.3s ease, transform 0.2s ease;
+  transition:
+    background-color 0.3s ease,
+    transform 0.2s ease;
 }
 
 #fitback-recommendation .btn-secondary__text {
@@ -177,8 +181,8 @@ h6 {
 /* STORE UI */
 /* What's my size */
 #fitback-recommendation #open-modal {
-  background-color: #4F5354;
-  color: #FFFFFF;
+  background-color: #4f5354;
+  color: #ffffff;
   padding: 1.5rem;
   border: none;
 }
@@ -440,15 +444,6 @@ h5 {
 }
 
 /* camera scan code */
-#user-feedback {
-  margin: 0 !important;
-  font-size: 5rem !important;
-  text-align: center !important;
-  font-weight: bold !important;
-  white-space: normal !important; /* Allow wrapping */
-  word-wrap: break-word !important; /* Break long words if needed */
-}
-
 .camera-container {
   text-align: center;
   position: relative;
@@ -493,11 +488,19 @@ h5 {
 #camera-display-format {
   position: relative;
   display: inline-block; /* or block, depending on your layout */
-  width: 40vw;
+  width: 100%;
   height: auto;
 
   /* If you want it responsive to the parent, you could do width: 100%; */
   /* If you prefer to shrink-wrap exactly to the video's size, use inline-block. */
+}
+#user-feedback {
+  margin: 0 !important;
+  font-size: 2rem !important;
+  text-align: center !important;
+  font-weight: bold !important;
+  white-space: normal !important; /* Allow wrapping */
+  word-wrap: break-word !important; /* Break long words if needed */
 }
 
 #finding-size-text {
@@ -507,37 +510,59 @@ h5 {
   text-align: center !important;
 }
 
-/* Make the entire modal wider and taller when scanning */
-/* Add this at the bottom of modal.css or in a new CSS file */
-#fitback-recommendation #CameraScan.expanded-camera-scan {
-  /* Example approach #1: Make the container occupy more space */
-  width: fit-content !important;
-  margin: 0 auto !important; /* Center it */
+#finding-your-size-logo {
+  width: -webkit-fill-available !important;
+}
 
-  position: relative; /* or absolute, depending on your layout */
-  /* 
+@media (min-width: 768px) {
+  #camera-display-format {
+    width: 40vw !important;
+  }
+
+  /* Make the entire modal wider and taller when scanning */
+  /* Add this at the bottom of modal.css or in a new CSS file */
+  #fitback-recommendation #CameraScan.expanded-camera-scan {
+    /* Example approach #1: Make the container occupy more space */
+    width: fit-content !important;
+    margin: 0 auto !important; /* Center it */
+
+    position: relative; /* or absolute, depending on your layout */
+    /* 
      If you prefer a simpler “zoom in” effect, 
      you could do something like: transform: scale(1.3); 
      transform-origin: top center; 
   */
-}
+  }
 
-/* If you need bigger text, buttons, etc. inside the CameraScan: */
-#fitback-recommendation #CameraScan.expanded-camera-scan * {
-  font-size: 1.25rem;
-  /* Adjust as needed */
-}
+  /* If you need bigger text, buttons, etc. inside the CameraScan: */
+  #fitback-recommendation #CameraScan.expanded-camera-scan * {
+    font-size: 1.25rem;
+    /* Adjust as needed */
+  }
 
-.modal-content.cameraScan {
-  width: fit-content !important;
-  height: fit-content !important; /* Give it a definite vertical space */
-  display: flex !important; /* Make it a flex container */
-  flex-direction: column !important;
-  justify-content: center !important; /* Vertical centering */
-  align-items: center !important; /* Horizontal centering */
-  overflow: hidden !important; /* No scroll, if you want a clean view */
-}
-#CameraScan {
-  width: 100%;
-  height: 100%;
+  .modal-content.cameraScan {
+    width: fit-content !important;
+    height: fit-content !important; /* Give it a definite vertical space */
+    display: flex !important; /* Make it a flex container */
+    flex-direction: column !important;
+    justify-content: center !important; /* Vertical centering */
+    align-items: center !important; /* Horizontal centering */
+    overflow: hidden !important; /* No scroll, if you want a clean view */
+  }
+
+  #CameraScan {
+    width: 100%;
+    height: 100%;
+  }
+
+  #user-feedback {
+    width: 93% !important;
+    margin: 0 !important;
+    margin-left: 5px !important;
+    font-size: 5rem !important;
+    text-align: center !important;
+    font-weight: bold !important;
+    white-space: normal !important; /* Allow wrapping */
+    word-wrap: break-word !important; /* Break long words if needed */
+  }
 }

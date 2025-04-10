@@ -9,7 +9,7 @@ import {
 import { initializePoseDetector, estimatePoses } from "./poseDetector.js";
 import { predictSizes } from "./predictSize2.js";
 
-console.log("Running v6");
+console.log("Running v7");
 console.log("Running v1.0.10");
 
 let currentSize;
@@ -129,8 +129,6 @@ self.onmessage = async (e) => {
       break;
   }
 };
-
-
 `;
 const blob = new Blob([workerCode], { type: "application/javascript" });
 const workerUrl = URL.createObjectURL(blob);
@@ -149,83 +147,48 @@ setWorkerInstance(tf1Worker);
 
 requestVersion();
 
-// async function collapsePose(video) {
-//   // Get intrinsic video dimensions.
-//   const width = video.videoWidth;
-//   const height = video.videoHeight;
-//   console.log("collapsePose: normal dimensions =", width, height);
+// async function TestCamera(video) {
+//   // Use displayed size, not intrinsic size
+//   const tempCanvas = document.createElement("canvas");
+//   tempCanvas.width = video.videoWidth;
+//   tempCanvas.height = video.videoHeight;
+//   console.log(tempCanvas.width, tempCanvas.height);
 
-//   // Create a temporary canvas with normal dimensions.
-//   const normalCanvas = document.createElement("canvas");
-//   normalCanvas.width = width;
-//   normalCanvas.height = height;
-//   const ctx = normalCanvas.getContext("2d", { willReadFrequently: true });
+//   const ctx = tempCanvas.getContext("2d", { willReadFrequently: true });
+//   ctx.drawImage(video, 0, 0, tempCanvas.width, tempCanvas.height);
+//   const normalDataURL = tempCanvas.toDataURL("image/png");
 
-//   // Draw the current video frame onto the canvas.
-//   ctx.drawImage(video, 0, 0, width, height);
-
-//   // Retrieve the image data from the canvas.
-//   const imageData = ctx.getImageData(0, 0, width, height);
-
-//   // Convert the canvas content to a Data URL for debugging.
-//   const normalDataURL = normalCanvas.toDataURL("image/png");
-//   console.log("collapsePose: Normal frame (Data URL) →", normalDataURL);
-
-//   // Pass the image data buffer to the classifier.
-//   try {
-//     const result = await classifyFrame(width, height, imageData.data.buffer);
-//     return {
-//       poseName: result.bestClass,
-//       poseConfidence: result.probability,
-//       normalDataURL, // Debug URL for verification.
-//     };
-//   } catch (error) {
-//     console.error("Error in classification:", error);
-//     return {
-//       poseName: null,
-
-//       poseConfidence: 0,
-//       normalDataURL,
-//     };
-//   }
+//   console.log("TestCamera  →", normalDataURL);
+//   return normalDataURL;
 // }
 
 async function collapsePose(video) {
+  // await TestCamera(video);
   // Use displayed size, not intrinsic size
-  const displayedWidth = video.clientWidth;
-  const displayedHeight = video.clientHeight;
-  console.log(
-    "collapsePose: displayed dimensions =",
-    displayedWidth,
-    displayedHeight,
-  );
+  const tempCanvas = document.createElement("canvas");
+  tempCanvas.width = video.videoWidth;
+  tempCanvas.height = video.videoHeight;
 
-  // Create a temporary canvas with displayed dimensions
-  const normalCanvas = document.createElement("canvas");
-  normalCanvas.width = displayedWidth;
-  normalCanvas.height = displayedHeight;
-  const ctx = normalCanvas.getContext("2d", { willReadFrequently: true });
+  const ctx = tempCanvas.getContext("2d", { willReadFrequently: true });
+  ctx.drawImage(video, 0, 0, tempCanvas.width, tempCanvas.height);
+  const normalDataURL = tempCanvas.toDataURL("image/png");
+  console.log("Return photoRef →", normalDataURL);
 
   // If your <video> is mirrored in CSS with transform: scaleX(-1),
   // replicate that transform:
   ctx.save();
-  ctx.translate(displayedWidth, 0);
+  ctx.translate(tempCanvas.videoWidth, 0);
   ctx.scale(-1, 1);
-  ctx.drawImage(video, 0, 0, displayedWidth, displayedHeight);
+  ctx.drawImage(video, 0, 0, tempCanvas.width, tempCanvas.height);
   ctx.restore();
 
-  // Retrieve the image data from the canvas
-  const imageData = ctx.getImageData(0, 0, displayedWidth, displayedHeight);
-
-  // Convert the canvas content to a Data URL for debugging
-  const normalDataURL = normalCanvas.toDataURL("image/png");
-  console.log("collapsePose: Normal frame (Data URL) →", normalDataURL);
+  const imageData = ctx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
 
   // Pass image data to your classifier
   try {
     const result = await classifyFrame(
-      displayedWidth,
-      displayedHeight,
+      tempCanvas.width,
+      tempCanvas.height,
       imageData.data.buffer,
     );
     return {
@@ -307,7 +270,6 @@ document.addEventListener("DOMContentLoaded", () => {
     legInput,
     thighInput,
   } = elements;
-
 
   // -- NEW: Append overlay to <body> so it's not nested in a limiting container --
   document.body.appendChild(overlay);
@@ -397,7 +359,7 @@ document.addEventListener("DOMContentLoaded", () => {
     onboardCameraGuidelinesNext,
     onboardCameraPositionNext,
     CameraScanNext,
-    onboardCameraPromptManual
+    onboardCameraPromptManual,
   ];
   //EVENTS
 
@@ -408,7 +370,15 @@ document.addEventListener("DOMContentLoaded", () => {
     stream: null,
     async startCamera() {
       try {
-        stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        // stream = await navigator.mediaDevices.getUserMedia({
+        //   video: { width: 1280, height: 960 },
+        //   video: true,
+        // });
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: false,
+        });
+
         isDetecting = true;
         video.srcObject = stream;
         video.play();
@@ -418,7 +388,7 @@ document.addEventListener("DOMContentLoaded", () => {
         // video.style.setProperty("height", "auto", "important");
 
         video.style.display = "block"; // Makes sure the video is visible
-        video.onloadeddata = () => {
+        video.onloadeddata = async () => {
           console.log("Video loaded, starting pose detection...");
           // TODO : convert this to a function to initialize the silhoutte
           const silhouette = document.getElementById("expected-silhouette");
@@ -499,7 +469,6 @@ document.addEventListener("DOMContentLoaded", () => {
     recommendationScreenArray,
     extraElements,
   );
-
 
   setupRecommendationNavigation(
     recommendationScreenBtn,
@@ -1199,6 +1168,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const ctx = tempCanvas.getContext("2d", { willReadFrequently: true });
     ctx.drawImage(video, 0, 0, tempCanvas.width, tempCanvas.height);
+    const normalDataURL = tempCanvas.toDataURL("image/png");
+    console.log("Return photoRef →", normalDataURL);
 
     const now = new Date();
     const timestamp = now.toISOString().replace(/[:.]/g, "-");
@@ -1402,7 +1373,7 @@ function setupOnboardingNavigation(
           if (range && userMeasurement) {
             let fitResult = evaluateFit(userMeasurement, range);
             let card = document.querySelector(
-              `.sizing-card[data-category="${category.toLowerCase()}"] p`
+              `.sizing-card[data-category="${category.toLowerCase()}"] p`,
             );
             if (card) {
               card.textContent = fitResult;
@@ -1509,7 +1480,7 @@ function setupOnboardingNavigation(
         screens.forEach((screen) => hideElement(screen));
         //show recommendation content screen
         // recommendation content screen is last element of screens array
-        showElement(screens[screens.length - 1])
+        showElement(screens[screens.length - 1]);
 
         //first get glider working when at recommendation content, then move to edit screen
         const gliderElement = document.querySelector(".glider");
@@ -1638,7 +1609,6 @@ function setupOnboardingNavigation(
         //change the active tab button ui
         extraElements.tabFitBtn.classList.remove("active");
         extraElements.tabProfileBtn.classList.add("active");
-
       });
     } else {
       btn.addEventListener("click", () => {
@@ -1646,8 +1616,6 @@ function setupOnboardingNavigation(
         showElement(screens[index + 1]);
       });
     }
-
-
   });
 }
 
@@ -1761,14 +1729,13 @@ function setupRecommendationNavigation(
           if (range && userMeasurement) {
             let fitResult = evaluateFit(userMeasurement, range);
             let card = document.querySelector(
-              `.sizing-card[data-category="${category.toLowerCase()}"] p`
+              `.sizing-card[data-category="${category.toLowerCase()}"] p`,
             );
             if (card) {
               card.textContent = fitResult;
             }
           }
         });
-
       });
     } else if (btn === tabProfileBtn) {
       btn.addEventListener("click", () => {
