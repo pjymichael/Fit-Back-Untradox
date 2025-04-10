@@ -508,6 +508,8 @@ document.addEventListener("DOMContentLoaded", () => {
     measurementInputArray,
     userInfo, // only to pass values to saveProfileMeasurementDetails
     userDetailArray, // only to pass values to saveProfileMeasurementDetails
+    sizes,
+    categories,
   );
 
   constructRecommenderCard(categories);
@@ -1388,6 +1390,26 @@ function setupOnboardingNavigation(
 
         glider.refresh();
 
+        // Trigger sizing card update manually for the first slide
+        let activeIndex = 0; // First slide
+        let activeSize = sizes[activeIndex];
+        let currentSizeData = sizingData.sizes[activeSize];
+
+        categories.forEach((category) => {
+          let userMeasurement = userInfo[category];
+          let range = currentSizeData[category];
+
+          if (range && userMeasurement) {
+            let fitResult = evaluateFit(userMeasurement, range);
+            let card = document.querySelector(
+              `.sizing-card[data-category="${category.toLowerCase()}"] p`
+            );
+            if (card) {
+              card.textContent = fitResult;
+            }
+          }
+        });
+
         function getPreviousSlide(currentSlide) {
           if (currentSlide === 1) {
             return numberOfSliders;
@@ -1702,6 +1724,8 @@ function setupRecommendationNavigation(
   measurementInputArray,
   userInfo,
   userDetailArray,
+  sizes,
+  categories,
 ) {
   const {
     tabFitBtn,
@@ -1724,6 +1748,27 @@ function setupRecommendationNavigation(
         hideElement(screenProfileMeasurementEdit);
         tabFitBtn.classList.add("active");
         tabProfileBtn.classList.remove("active");
+
+        // Trigger sizing card update manually for the first slide
+        let activeIndex = 0; // First slide
+        let activeSize = sizes[activeIndex];
+        let currentSizeData = sizingData.sizes[activeSize];
+        console.log(sizes, categories);
+        categories.forEach((category) => {
+          let userMeasurement = userInfo[category];
+          let range = currentSizeData[category];
+
+          if (range && userMeasurement) {
+            let fitResult = evaluateFit(userMeasurement, range);
+            let card = document.querySelector(
+              `.sizing-card[data-category="${category.toLowerCase()}"] p`
+            );
+            if (card) {
+              card.textContent = fitResult;
+            }
+          }
+        });
+
       });
     } else if (btn === tabProfileBtn) {
       btn.addEventListener("click", () => {
