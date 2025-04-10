@@ -1,283 +1,423 @@
-import { json, redirect } from "@remix-run/node"; // Handle server-side logic
-import { useLoaderData, useNavigate } from "@remix-run/react"; // For navigation and data fetching
-import {useState} from "react"
+import { json } from "@remix-run/node";
+import { useLoaderData, useNavigate, useFetcher } from "@remix-run/react";
+import { useState } from "react";
 import {
   Page,
   Layout,
   Card,
-  Select,
+  IndexTable,
+  Thumbnail,
+  Text,
+  Tabs,
   Button,
+  Select,
 } from "@shopify/polaris";
 import { authenticate } from "../shopify.server";
-import db from "../db.server";
+import db from "../db.server"; // Adjust the path as needed
 
-// Loader to fetch product and sizing charts
-export async function loader({ request, params }) {
-  const { admin } = await authenticate.admin(request);
-  const { id } = params;
-
-  // Validate ID format
-  if (!id || isNaN(id)) {
-    throw new Response(
-      JSON.stringify({ error: "Invalid product ID format" }),
-      { status: 400 }
-    );
-  }
-
-  const productGlobalId = `gid://shopify/Product/${id}`;
-
+// -----------------------------
+// Loader: Fetch Shopify products and linked sizing tables from your DB
+// -----------------------------
+export const loader = async ({ request }) => {
   try {
-    // Execute GraphQL query with proper structure
-    const response = await admin.graphql(
-      `#graphql
-      query GetProduct($id: ID!) {
-        product(id: $id) {
-          id
-          title
-          metafield(namespace: "custom", key: "sizing_chart") {
-            value
+    const { admin } = await authenticate.admin(request);
+    console.log("Admin authenticated");
+
+    const response = await admin.graphql(`
+      query getProducts {
+        products(first: 20) {
+          edges {
+            node {
+              id
+              title
+              featuredImage {
+                url
+                altText
+              }
+            }
           }
         }
       }
-      `,
-      {
-        variables: { id: productGlobalId }
-      }
-    );
-
-    // Parse response properly
+    `);
     const responseJson = await response.json();
+    console.log("GraphQL response:", responseJson);
+
+    const edges = Array.isArray(responseJson.data?.products?.edges)
+      ? responseJson.data.products.edges
+      : [];
+    console.log("GraphQL edges:", edges);
+
+    const products = edges
+      .filter((edge) => edge && edge.node && edge.node.id)
+      .map((edge) => edge.node);
+    console.log("Parsed products:", products);
     
-    // Validate response structure
-    if (!responseJson.data?.product) {
-      throw new Response(
-        JSON.stringify({ error: "Product not found" }),
-        { status: 404 }
-      );
-    }
+    //array of products id
+    const productIds = products.map((p) => p.id);
+    console.log("Product IDs:", productIds);
+    
+    //use the products id to find all the sizing-table
+    const productLinks = await db.product.findMany({
+      where: {
+        shopifyProductId: { in: productIds },
+      },
+      include: { sizingTable: true },
+    });
+    console.log("Product links from DB:", productLinks);
 
-    // Fetch sizing charts with error handling
-    const sizingCharts = await db.sizingChart.findMany({
-      select: {
-        id: true,
-        createdAt: true,
-        updatedAt: true,
-        sizes: {
-          select: {
-            id: true,
-            label: true,
-            measurements: true
-          }
-        }
-      }
-    }).catch(error => {
-      console.error("Database error:", error);
-      throw new Response(
-        JSON.stringify({ error: "Failed to fetch sizing charts" }),
-        { status: 500 }
-      );
+    //sizing tables
+    const sizingTables = await db.sizingTable.findMany({
+      orderBy: { createdAt: "desc" }
     });
 
-    // Return successful response
-    return json({
-      product: responseJson.data.product,
-      sizingCharts
-    });
+    const sizingTableMap = Object.fromEntries(
+      productLinks.map((p) => [
+        p.shopifyProductId,
+        p.sizingTable?.apparelType || "Unlinked",
+      ])
+    );
+    console.log("Sizing table map:", sizingTableMap);
 
+    return json({ products, sizingTableMap, sizingTables });
   } catch (error) {
     console.error("Loader error:", error);
-    
-    // Handle different types of errors
-    if (error instanceof Response) {
-      throw error;
-    }
-
-    if (error.message?.includes("network")) {
-      throw new Response(
-        JSON.stringify({ 
-          error: "Network error", 
-          message: "Please check your connection and try again" 
-        }),
-        { status: 503 }
-      );
-    }
-
-    throw new Response(
-      JSON.stringify({ 
-        error: "Failed to load product or sizing charts",
-        message: error.message
-      }),
-      { status: 500 }
-    );
+    throw error;
   }
-}
+};
+// -----------------------------
+// Action: Link sizing table to product & update metafield
+// -----------------------------
+export const action = async ({ request }) => {
+  const form = await request.formData();
+  const _method = form.get("_method");
 
-// Action to link sizing chart
-export async function action({ request, params }) {
   const { admin } = await authenticate.admin(request);
-  const { id } = params;
-  const productGlobalId = `gid://shopify/Product/${id}`;
-  const formData = await request.formData();
-  const sizingChartId = formData.get("sizingChartId");
-  const parsedSizingChartId = parseInt(sizingChartId, 10);
-  
-  if (isNaN(parsedSizingChartId)) {
-    return json({ error: "Invalid Sizing Chart ID" }, { status: 400 });
-  }
 
-  try {
-    const response = await admin.graphql(
-      `#graphql
-      mutation LinkSizingChart($input: [MetafieldsSetInput!]!) {
-        metafieldsSet(metafields: $input) {
-          metafields {
-            id
-            key
-            namespace
-            value
-            type
-          }
-          userErrors {
-            field
-            message
-            code
+  // 🗑 Delete a sizing table
+  if (_method === "delete") {
+    const deleteTableId = form.get("deleteTableId");
+
+    // Get all products linked to this sizing table
+    const linkedProducts = await db.product.findMany({
+      where: { sizingTableId: deleteTableId },
+    });
+
+    // Delete metafields from Shopify for each product
+    for (const product of linkedProducts) {
+      await admin.graphql(`
+        mutation MetafieldsDelete($metafields: [MetafieldIdentifierInput!]!) {
+          metafieldsDelete(metafields: $metafields) {
+            deletedMetafields { key }
+            userErrors { message }
           }
         }
-      }
-      `,
-      {
+      `, {
         variables: {
-          input: [
-            {
-              namespace: "custom",
-              key: "sizing_chart",
-              value: parsedSizingChartId.toString(), // Shopify requires the value as a string even for number_integer
-              type: "number_integer",
-              ownerId: productGlobalId,
-            },
-          ],
-        },
-      }
-    );
-
-    const responseJson = await response.json();
-    console.log("Metafield update response:", JSON.stringify(responseJson, null, 2));
-
-    if (responseJson.errors?.length > 0) {
-      console.error("GraphQL errors:", responseJson.errors);
-      return json({ 
-        error: "GraphQL Error",
-        details: responseJson.errors[0].message 
-      }, { status: 400 });
-    }
-
-    if (responseJson.data?.metafieldsSet?.userErrors?.length > 0) {
-      const errors = responseJson.data.metafieldsSet.userErrors;
-      console.error("Metafield update errors:", errors);
-      return json({ 
-        error: "Failed to update metafield",
-        details: errors 
-      }, { status: 400 });
-    }
-
-    if (!responseJson.data?.metafieldsSet?.metafields?.length) {
-      return json({ 
-        error: "No metafield was created",
-        details: "The mutation completed but no metafield was returned" 
-      }, { status: 400 });
-    }
-
-    return redirect("/app");
-  } catch (error) {
-    console.error("Action Error:", error);
-    return json({ 
-      error: "Failed to link sizing chart",
-      details: error.message 
-    }, { status: 500 });
-  }
-}
-// Client-side component
-export default function LinkSizingChartPage() {
-  const { product, sizingCharts } = useLoaderData();
-  const navigate = useNavigate();
-  const [selectedSizingChart, setSelectedSizingChart] = useState("");
-  const [error, setError] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
-
-  const handleSelectChange = (value) => {
-    setSelectedSizingChart(value);
-    setError(null);
-  };
-
-  const handleSubmit = async () => {
-    setIsLoading(true);
-    setError(null);
-    
-    const formData = new FormData();
-    formData.append("sizingChartId", selectedSizingChart);
-
-    try {
-      const response = await fetch(window.location.pathname, {
-        method: "POST",
-        body: formData,
+          metafields: [{
+            ownerId: product.shopifyProductId,
+            namespace: "custom",
+            key: "sizing_chart"
+          }]
+        }
       });
-
-      const result = await response.json().catch(() => null);
-      
-      if (response.ok) {
-        navigate("/app");
-      } else {
-        const errorMessage = result?.details 
-          ? `${result.error}: ${JSON.stringify(result.details)}`
-          : result?.error || "Failed to link sizing chart. Please try again.";
-        setError(errorMessage);
-      }
-    } catch (error) {
-      setError("An unexpected error occurred. Please try again.");
-      console.error("Unexpected error:", error);
-    } finally {
-      setIsLoading(false);
     }
-  };
+
+    // Unlink all related products in DB
+    await db.product.deleteMany({
+      where: { sizingTableId: deleteTableId },
+    });
+
+    // Delete the sizing table from DB
+    await db.sizingTable.delete({
+      where: { id: deleteTableId },
+    });
+
+    return json({ deleted: true });
+  }
+
+  // 🔗 Link product to sizing table (existing logic)
+  const shopifyProductId = form.get("shopifyProductId");
+  const sizingTableId = form.get("sizingTableId");
+
+  if (!sizingTableId) {
+    await db.product.deleteMany({
+      where: { shopifyProductId },
+    });
+
+    await admin.graphql(`
+      mutation MetafieldsDelete($metafields: [MetafieldIdentifierInput!]!) {
+        metafieldsDelete(metafields: $metafields) {
+          deletedMetafields { key }
+          userErrors { message }
+        }
+      }
+    `, {
+      variables: {
+        metafields: [{
+          ownerId: shopifyProductId,
+          namespace: "custom",
+          key: "sizing_chart",
+        }]
+      }
+    });
+
+    return json({ success: true, unlinked: true });
+  }
+
+  const sizingTable = await db.sizingTable.findUnique({
+    where: { id: sizingTableId },
+  });
+
+  if (!sizingTable) return json({ error: "Invalid sizing table" }, { status: 400 });
+
+  await db.product.upsert({
+    where: { shopifyProductId },
+    update: { sizingTableId },
+    create: {
+      shopifyProductId,
+      sizingTableId,
+    },
+  });
+
+  const response = await admin.graphql(`
+    mutation metafieldsSet($metafields: [MetafieldsSetInput!]!) {
+      metafieldsSet(metafields: $metafields) {
+        metafields {
+          id
+          namespace
+          key
+          type
+          value
+        }
+        userErrors {
+          field
+          message
+        }
+      }
+    }
+  `, {
+    variables: {
+      metafields: [{
+        namespace: "custom",
+        key: "sizing_chart",
+        ownerId: shopifyProductId,
+        type: "json",
+        value: JSON.stringify(sizingTable.data),
+      }],
+    },
+  });
+
+  const result = await response.json();
+  console.log(" metafieldsSet result:", JSON.stringify(result, null, 2));
+
+  return json({ success: true });
+};
+
+function SizingChartPreview({ data }) {
+  // data is expected to be: { apparel_type, unit, sizes }
+  if (!data || !data.sizes) return null;
+
+  // Get sizes entries (size label and its measurements)
+  const sizesEntries = Object.entries(data.sizes);
+
+  // Determine measurement keys from the first entry. Assumes keys are consistent across sizes.
+  const measurementKeys =
+    sizesEntries.length > 0 ? Object.keys(sizesEntries[0][1]) : [];
 
   return (
-    <Page title={`Link Sizing Chart to ${product.title}`}>
-      <Layout>
-        <Layout.Section>
-          {error && (
-            <Banner status="critical" title="Error">
-              <p>{error}</p>
-            </Banner>
-          )}
-          <Card title="Select a Sizing Chart" sectioned>
-            <Select
-              label="Sizing Chart"
-              options={[
-                { label: "Select a Sizing Chart", value: "" },
-                ...sizingCharts.map((chart) => ({
-                  label: `Sizing Chart ID: ${chart.id}`,
-                  value: chart.id.toString(),
-                })),
-              ]}
-              value={selectedSizingChart}
-              onChange={handleSelectChange}
-            />
-            <div style={{ marginTop: "1rem" }}>
-              <Button
-                primary
-                onClick={handleSubmit}
-                disabled={!selectedSizingChart || isLoading}
-                loading={isLoading}
+    <table style={{ width: "100%", borderCollapse: "collapse" }}>
+      <thead>
+        <tr>
+          <th style={{ border: "1px solid #ccc", padding: "8px" }}>Size</th>
+          {measurementKeys.map((key) => (
+            <th key={key} style={{ border: "1px solid #ccc", padding: "8px" }}>
+              {key} ({data.unit})
+            </th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        {sizesEntries.map(([sizeLabel, measurements]) => (
+          <tr key={sizeLabel}>
+            <td style={{ border: "1px solid #ccc", padding: "8px" }}>
+              {sizeLabel}
+            </td>
+            {measurementKeys.map((key) => (
+              <td
+                key={key}
+                style={{
+                  border: "1px solid #ccc",
+                  padding: "8px",
+                  textAlign: "center",
+                }}
               >
-                Link Sizing Chart
+                {measurements[key].min} - {measurements[key].max}
+              </td>
+            ))}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}
+
+// -----------------------------
+// Component: Display products with image + title in one column and tag in another column
+// -----------------------------
+export default function Index() {
+  // Inside Index component
+  const fetcher = useFetcher();
+  const { products, sizingTableMap, sizingTables } = useLoaderData();
+  const navigate = useNavigate();
+  const [selectedTab, setSelectedTab] = useState(0);
+  const handleLinkSizeTable = (productId) => {
+    // Extract the numeric ID from the full Shopify ID
+    const cleanId = productId.split('/').pop();
+    debugLog("Navigating to Link Sizing Chart", { 
+      originalId: productId,
+      cleanId
+    });
+    navigate(`/app/products/${cleanId}/link-sizing-chart`);
+  };
+
+  const handleTabChange = (selectedTabIndex) => setSelectedTab(selectedTabIndex);
+
+  const tabs = [
+    { id: "products-tab", content: "Products", panelID: "products-content" },
+    { id: "size-tables-tab", content: "Size Tables", panelID: "size-tables-content" },
+  ];
+
+
+  return (
+    <Page fullWidth>
+      <Tabs tabs={tabs} selected={selectedTab} onSelect={handleTabChange} fitted>
+        <Layout.Section fullWidth>
+          {selectedTab === 0 && (
+            <Card>
+              {products.length === 0 ? (
+                <Text variant="bodyMd" tone="subdued" padding="4">
+                  No products detected.
+                </Text>
+              ) : (
+                <IndexTable
+                  resourceName={{ singular: "product", plural: "products" }}
+                  itemCount={products.length}
+                  headings={[
+                    { title: "Product" },
+                    { title: "Tag" },
+                  ]}
+                  selectable={false}
+                >
+                  {products.map((product, index) => (
+                    <IndexTable.Row
+                      id={product.id}
+                      key={product.id}
+                      position={index}
+                    >
+                      <IndexTable.Cell>
+                        <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+                          <Thumbnail
+                            source={product.featuredImage?.url ||
+                              "https://cdn.shopify.com/s/files/1/0757/9955/files/empty-state.svg"}
+                            alt={product.featuredImage?.altText || product.title}
+                            size="small"
+                          />
+                          <Text variant="bodyMd" fontWeight="medium" as="span">
+                            {product.title}
+                          </Text>
+                        </div>
+                      </IndexTable.Cell>
+                      <IndexTable.Cell>
+                        <fetcher.Form method="post">
+                          <input type="hidden" name="shopifyProductId" value={product.id} />
+                          <Select
+                            name="sizingTableId"
+                            label=""
+                            labelHidden
+                            value={sizingTableMap[product.id] === "Unlinked" ? "" : sizingTables.find(t => t.apparelType === sizingTableMap[product.id])?.id || ""}
+                            onChange={(value) => {
+                              fetcher.submit({ shopifyProductId: product.id, sizingTableId: value }, { method: "post" });
+                            }}
+                            options={[
+                              { label: "Unlinked", value: "" }, // 🔁 this triggers the unlink logic
+                              ...sizingTables.map((table) => ({
+                                label: table.apparelType,
+                                value: table.id,
+                              })),
+                            ]}
+                          />
+                        </fetcher.Form>
+                      </IndexTable.Cell>
+                    </IndexTable.Row>
+                  ))}
+                </IndexTable>
+              )}
+            </Card>
+          )}
+          {/* Sizing Tables */}
+          {selectedTab === 1 && (
+            <Layout.Section>
+              <Button primary onClick={() => navigate("/app/new/sizingchart")}>
+                Add Sizing Table
               </Button>
-            </div>
-          </Card>
-          <div style={{ marginTop: "1rem" }}>
-            <Button onClick={() => navigate(-1)}>Back</Button>
-          </div>
+
+              {sizingTables.length === 0 ? (
+                <Text tone="subdued" variant="bodyMd" padding="4">
+                  No sizing tables added yet.
+                </Text>
+              ) : (
+                <Card title="Sizing Tables">
+                  <IndexTable
+                    resourceName={{ singular: "table", plural: "tables" }}
+                    itemCount={sizingTables.length}
+                    headings={[
+                      { title: "Apparel Type" },
+                      { title: "Chart" },
+                    ]}
+                    selectable={false}
+                  >
+                    {sizingTables.map((table, index) => (
+                      <IndexTable.Row
+                        id={table.id}
+                        key={table.id}
+                        position={index}
+                      >
+                        <IndexTable.Cell>
+                          <Text variant="bodyMd" fontWeight="medium" as="span">
+                            {table.apparelType}
+                          </Text>
+                        </IndexTable.Cell>
+                        <IndexTable.Cell>
+                          <Text variant="bodyMd" as="span">
+                            <SizingChartPreview data={table.data} />
+                          </Text>
+                          <div style={{ marginTop: "0.5rem" }}>
+                            <div style={{ display: "flex", gap: "0.5rem", marginTop: "0.5rem" }}>
+                              <Button size="slim" onClick={() => navigate(`/app/${table.id}/sizingchart`)}>
+                                Edit
+                              </Button>
+                              <fetcher.Form method="post" onSubmit={(e) => {
+                                if (!confirm("Are you sure you want to delete this sizing table?")) e.preventDefault();
+                              }}>
+                                <input type="hidden" name="_method" value="delete" />
+                                <input type="hidden" name="deleteTableId" value={table.id} />
+                                <Button size="slim" destructive submit>
+                                  Delete
+                                </Button>
+                              </fetcher.Form>
+                            </div>
+                          </div>
+                        </IndexTable.Cell>
+                      </IndexTable.Row>
+                    ))}
+                  </IndexTable>
+                </Card>
+              )}
+            </Layout.Section>
+
+          )}
         </Layout.Section>
-      </Layout>
+      </Tabs>
     </Page>
   );
 }

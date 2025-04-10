@@ -11,6 +11,7 @@ import {
   FormLayout,
   InlineError,
   Select,
+  Text,
 } from "@shopify/polaris";
 import { useState } from "react";
 import db from "../db.server";
@@ -71,7 +72,7 @@ export const action = async ({ request, params }) => {
               metafields: [
                 {
                   namespace: "custom",
-                  key: "sizing_table",
+                  key: "sizing_chart",
                   ownerId: product.shopifyProductId,
                   type: "json",
                   value: JSON.stringify(data),
@@ -98,6 +99,30 @@ export default function SizingChartForm() {
   const actionData = useActionData();
   const submit = useSubmit();
   console.log(table);
+
+    // Define some preset options (adjust as needed)
+  const presets = {
+    shirt: {
+      apparel_type: "shirt",
+      unit: "cm",
+      measurementLabels: ["chest", "shoulder", "waist"],
+      sizes: [
+        { label: "S", measurements: { chest: { min: 0, max: 0 }, shoulder: { min: 0, max: 0 }, waist: { min: 0, max: 0 } } },
+        { label: "M", measurements: { chest: { min: 0, max: 0 }, shoulder: { min: 0, max: 0 }, waist: { min: 0, max: 0 } } },
+        { label: "L", measurements: { chest: { min: 0, max: 0 }, shoulder: { min: 0, max: 0 }, waist: { min: 0, max: 0 } } },
+      ],
+    },
+    pants: {
+      apparel_type: "pant",
+      unit: "cm",
+      measurementLabels: ["waist", "hip", "leg"],
+      sizes: [
+        { label: "S", measurements: { waist: { min: 0, max: 0 }, hip: { min: 0, max: 0 }, leg: { min: 0, max: 0 } } },
+        { label: "M", measurements: { waist: { min: 0, max: 0 }, hip: { min: 0, max: 0 }, leg: { min: 0, max: 0 } } },
+        { label: "L", measurements: { waist: { min: 0, max: 0 }, hip: { min: 0, max: 0 }, leg: { min: 0, max: 0 } } },
+      ],
+    },
+  };
   // Convert the incoming JSON sizes (object) into an array format for our dynamic table.
   const initialSizes = table
     ? Object.entries(table.data.sizes).map(([sizeLabel, measurements]) => ({
@@ -140,6 +165,26 @@ export default function SizingChartForm() {
     { label: "cm", value: "cm" },
     { label: "inches", value: "in" },
   ];
+
+  // --- Handler to Apply a Preset ---
+  const applyPreset = (preset) => {
+    // Update the state with preset data.
+    setApparelType(preset.apparel_type);
+    setUnit(preset.unit);
+    setMeasurementLabels(preset.measurementLabels);
+    
+    // Convert preset sizes so min and max become strings.
+    const formattedSizes = preset.sizes.map((size) => ({
+      label: size.label,
+      measurements: Object.fromEntries(
+        Object.entries(size.measurements).map(([key, range]) => [
+          key,
+          { min: String(range.min), max: String(range.max) },
+        ])
+      ),
+    }));
+    setSizes(formattedSizes);
+  };
 
   // --- Handlers ---
   // Add a new size row.
@@ -275,6 +320,19 @@ export default function SizingChartForm() {
           <Card sectioned>
             <Form method="post" onSubmit={handleSubmit}>
               <FormLayout>
+                {/* --- Preset Options: Only show in add mode --- */}
+                {mode === "add" && (
+                  
+                  <div style={{ marginBottom: "1em" }}>
+                    <Text>Use a preset</Text>
+                    <Button onClick={() => applyPreset(presets.shirt)}>
+                      Shirt
+                    </Button>
+                    <Button onClick={() => applyPreset(presets.pants)}>
+                      Pants
+                    </Button>
+                  </div>
+                )}
                 <TextField
                   label="Apparel Type"
                   name="apparelType"

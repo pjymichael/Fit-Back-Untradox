@@ -116,7 +116,7 @@ export const action = async ({ request }) => {
           metafields: [{
             ownerId: product.shopifyProductId,
             namespace: "custom",
-            key: "sizing_table"
+            key: "sizing_chart"
           }]
         }
       });
@@ -156,7 +156,7 @@ export const action = async ({ request }) => {
         metafields: [{
           ownerId: shopifyProductId,
           namespace: "custom",
-          key: "sizing_table",
+          key: "sizing_chart",
         }]
       }
     });
@@ -199,7 +199,7 @@ export const action = async ({ request }) => {
     variables: {
       metafields: [{
         namespace: "custom",
-        key: "sizing_table",
+        key: "sizing_chart",
         ownerId: shopifyProductId,
         type: "json",
         value: JSON.stringify(sizingTable.data),
@@ -213,6 +213,53 @@ export const action = async ({ request }) => {
   return json({ success: true });
 };
 
+function SizingChartPreview({ data }) {
+  // data is expected to be: { apparel_type, unit, sizes }
+  if (!data || !data.sizes) return null;
+
+  // Get sizes entries (size label and its measurements)
+  const sizesEntries = Object.entries(data.sizes);
+
+  // Determine measurement keys from the first entry. Assumes keys are consistent across sizes.
+  const measurementKeys =
+    sizesEntries.length > 0 ? Object.keys(sizesEntries[0][1]) : [];
+
+  return (
+    <table style={{ width: "100%", borderCollapse: "collapse" }}>
+      <thead>
+        <tr>
+          <th style={{ border: "1px solid #ccc", padding: "8px" }}>Size</th>
+          {measurementKeys.map((key) => (
+            <th key={key} style={{ border: "1px solid #ccc", padding: "8px" }}>
+              {key} ({data.unit})
+            </th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        {sizesEntries.map(([sizeLabel, measurements]) => (
+          <tr key={sizeLabel}>
+            <td style={{ border: "1px solid #ccc", padding: "8px" }}>
+              {sizeLabel}
+            </td>
+            {measurementKeys.map((key) => (
+              <td
+                key={key}
+                style={{
+                  border: "1px solid #ccc",
+                  padding: "8px",
+                  textAlign: "center",
+                }}
+              >
+                {measurements[key].min} - {measurements[key].max}
+              </td>
+            ))}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}
 
 // -----------------------------
 // Component: Display products with image + title in one column and tag in another column
@@ -325,7 +372,7 @@ export default function Index() {
                     itemCount={sizingTables.length}
                     headings={[
                       { title: "Apparel Type" },
-                      { title: "Preview (JSON)" },
+                      { title: "Chart" },
                     ]}
                     selectable={false}
                   >
@@ -342,15 +389,7 @@ export default function Index() {
                         </IndexTable.Cell>
                         <IndexTable.Cell>
                           <Text variant="bodyMd" as="span">
-                            <code style={{
-                              whiteSpace: "nowrap",
-                              overflow: "hidden",
-                              textOverflow: "ellipsis",
-                              display: "block",
-                              maxWidth: 400
-                            }}>
-                              {JSON.stringify(table.data).slice(0, 100)}...
-                            </code>
+                            <SizingChartPreview data={table.data} />
                           </Text>
                           <div style={{ marginTop: "0.5rem" }}>
                             <div style={{ display: "flex", gap: "0.5rem", marginTop: "0.5rem" }}>
