@@ -3,7 +3,7 @@
 client_id = "6d959e3b05f5a0b80990424ba2b0a14d"
 name = "Fitback"
 handle = "fitback-5"
-application_url = "https://additions-played-fatal-oclc.trycloudflare.com"
+application_url = "https://ethernet-seasons-outsourcing-human.trycloudflare.com"
 embedded = true
 
 [build]
@@ -17,9 +17,9 @@ scopes = "read_products,write_products"
 
 [auth]
 redirect_urls = [
-  "https://additions-played-fatal-oclc.trycloudflare.com/auth/callback",
-  "https://additions-played-fatal-oclc.trycloudflare.com/auth/shopify/callback",
-  "https://additions-played-fatal-oclc.trycloudflare.com/api/auth/callback"
+  "https://ethernet-seasons-outsourcing-human.trycloudflare.com/auth/callback",
+  "https://ethernet-seasons-outsourcing-human.trycloudflare.com/auth/shopify/callback",
+  "https://ethernet-seasons-outsourcing-human.trycloudflare.com/api/auth/callback"
 ]
 
 [webhooks]
