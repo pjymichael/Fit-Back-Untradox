@@ -447,7 +447,6 @@ h5 {
 .camera-container {
   text-align: center;
   position: relative;
-  width: fit-content;
   height: fit-content;
 }
 

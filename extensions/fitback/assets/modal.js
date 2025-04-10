@@ -393,7 +393,7 @@ document.addEventListener("DOMContentLoaded", () => {
           // TODO : convert this to a function to initialize the silhoutte
           const silhouette = document.getElementById("expected-silhouette");
           console.log("Silhouette element:", silhouette.src);
-          silhouette.style.height = video.offsetHeight * 0.95 + "px";
+          silhouette.style.height = video.offsetHeight * 0.85 + "px";
           console.log(video.clientHeight, video.clientWidth);
           // canvas.width = video.clientWidth;
           // canvas.height = video.clientHeight;
