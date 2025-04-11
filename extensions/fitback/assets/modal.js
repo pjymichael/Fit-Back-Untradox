@@ -996,15 +996,17 @@ document.addEventListener("DOMContentLoaded", () => {
       // Completed
       DisplayFeedback("Measurement Process completed!");
       // Example: auto-switch to Fit tab
+      document.querySelector(".camera-container").classList.add("hidden");
       cameraController.deactivateCamera();
+
       setTimeout(() => {
         // tabFitBtn.click();
         console.log("Switched to Fit tab after detection completed");
         camerascanclass1.style.display = "none";
-        console.log(camerascanclass2);
+        // console.log(camerascanclass2);
         camerascanclass2.classList.remove("hidden");
         document.querySelector(".modal-content").classList.remove("cameraScan");
-        console.log(camerascanclass2);
+        // console.log(camerascanclass2);
         //cameraController.deactivateCamera();
       }, 1000);
 
@@ -1214,6 +1216,7 @@ function initializeElements() {
     camerascanclass1: document.getElementById("CameraScan-class1"),
     productInfo: document.getElementById("sizing-data"),
     canvas: document.getElementById("camera-output"),
+
     video: document.getElementById("camera-preview"),
     overlay: document.getElementById("modal-overlay"),
     mainContent: document.getElementById("modal-content"),
