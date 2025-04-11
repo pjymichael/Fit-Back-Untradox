@@ -32,6 +32,7 @@ export const loader = async ({ params }) => {
 export const action = async ({ request, params }) => {
   const form = await request.formData();
   const apparelType = form.get("apparelType");
+  console.log("Form apparelType:", apparelType);
   const dataRaw = form.get("data");
   console.log("Received dataRaw:", dataRaw);
 
@@ -39,6 +40,7 @@ export const action = async ({ request, params }) => {
   
   try {
     const data = JSON.parse(dataRaw);
+    console.log("dataraw parsed into json", data)
 
     if (params.id === "new") {
       // For new table, create a sizingTable record.
@@ -72,7 +74,7 @@ export const action = async ({ request, params }) => {
               metafields: [
                 {
                   namespace: "custom",
-                  key: "sizing_chart",
+                  key: "sizing_table",
                   ownerId: product.shopifyProductId,
                   type: "json",
                   value: JSON.stringify(data),

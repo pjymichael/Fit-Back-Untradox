@@ -522,7 +522,6 @@ h5 {
   /* Add this at the bottom of modal.css or in a new CSS file */
   #fitback-recommendation #CameraScan.expanded-camera-scan {
     /* Example approach #1: Make the container occupy more space */
-    width: fit-content !important;
     margin: 0 auto !important; /* Center it */
 
     position: relative; /* or absolute, depending on your layout */

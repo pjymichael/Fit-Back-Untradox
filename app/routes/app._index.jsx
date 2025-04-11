@@ -116,7 +116,7 @@ export const action = async ({ request }) => {
           metafields: [{
             ownerId: product.shopifyProductId,
             namespace: "custom",
-            key: "sizing_chart"
+            key: "sizing_table"
           }]
         }
       });
@@ -156,7 +156,7 @@ export const action = async ({ request }) => {
         metafields: [{
           ownerId: shopifyProductId,
           namespace: "custom",
-          key: "sizing_chart",
+          key: "sizing_table",
         }]
       }
     });
@@ -199,7 +199,7 @@ export const action = async ({ request }) => {
     variables: {
       metafields: [{
         namespace: "custom",
-        key: "sizing_chart",
+        key: "sizing_table",
         ownerId: shopifyProductId,
         type: "json",
         value: JSON.stringify(sizingTable.data),
