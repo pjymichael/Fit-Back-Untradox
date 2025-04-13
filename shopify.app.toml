@@ -3,7 +3,7 @@
 client_id = "6d959e3b05f5a0b80990424ba2b0a14d"
 name = "Fitback"
 handle = "fitback-5"
-application_url = "https://ip-mae-bg-indicate.trycloudflare.com"
+application_url = "https://fitback-b7bi.onrender.com"
 embedded = true
 
 [build]
@@ -17,9 +17,9 @@ scopes = "read_products,write_products"
 
 [auth]
 redirect_urls = [
-  "https://ip-mae-bg-indicate.trycloudflare.com/auth/callback",
-  "https://ip-mae-bg-indicate.trycloudflare.com/auth/shopify/callback",
-  "https://ip-mae-bg-indicate.trycloudflare.com/api/auth/callback"
+  "https://fitback-b7bi.onrender.com/auth/callback",
+  "https://fitback-b7bi.onrender.com/auth/shopify/callback",
+  "https://fitback-b7bi.onrender.com/api/auth/callback"
 ]
 
 [webhooks]
