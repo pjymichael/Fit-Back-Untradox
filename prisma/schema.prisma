@@ -30,11 +30,14 @@ model Session {
 
 model SizingTable {
   id          String    @id @default(cuid())
-  apparelType String    @unique
+  shop        String    // New field to link sizing table to a specific store
+  apparelType String
   data        Json
   products    Product[]
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+
+  @@unique([shop, apparelType]) // Ensure that each shop can have unique apparel types
 }
 
 model Product {
